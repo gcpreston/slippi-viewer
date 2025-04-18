@@ -8,6 +8,10 @@ interface HTMLSlippiViewer extends HTMLElement {
 
 customElement("slippi-viewer", { zipsBaseUrl: "/" },
   (props, { element }) => {
-    element.spectate = setWsUrl
+    // The @font-face rule used in the Material Icons CSS must be declared
+    // in the main document.
+    // https://stackoverflow.com/a/60526280
+    element.innerHTML = '<link href="https://fonts.googleapis.com/icon?family=Material+Icons|Material+Icons+Outlined" rel="stylesheet" />';
+    element.spectate = setWsUrl;
     return (<MiniApp zipsBaseUrl={props.zipsBaseUrl} /> as HTMLSlippiViewer);
   });
