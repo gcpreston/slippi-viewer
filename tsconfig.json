@@ -12,7 +12,6 @@
     "strict": true,
     "skipLibCheck": true,
     "target": "esnext",
-    "types": ["vite/client"],
     "noEmit": true
   }
 }

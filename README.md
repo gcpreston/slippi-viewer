@@ -3,12 +3,12 @@
 A Web Component for viewing Slippi replays and streams in the browser. Extracted from [Slippi Lab](https://github.com/frankborden/slippilab).
 
 ## Features
-[ ] View replays
-[x] View streams
-[x] Pause/play/rewind/fast forward/skip
-[ ] Highlights
-[x] Use as custom element
-[ ] Use as SolidJS component
+- [ ] View replays
+- [x] View streams
+- [x] Pause/play/rewind/fast forward/skip
+- [ ] Highlights
+- [x] Use as custom element
+- [ ] Use as SolidJS component
 
 ## Usage
 
