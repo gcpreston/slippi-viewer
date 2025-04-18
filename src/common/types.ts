@@ -43,6 +43,7 @@ export type SpectateData = {
 
 export type NonReactiveState = {
   payloadSizes?: CommandPayloadSizes;
+  replayFormatVersion?: string,
   /**
    * Player control starts at 84. Timer starts at 123.
    */

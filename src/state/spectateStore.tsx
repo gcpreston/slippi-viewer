@@ -27,7 +27,7 @@ import { CharacterAnimations, fetchAnimations } from "~/viewer/animationCache";
 import { actionMapByInternalId } from "~/viewer/characters";
 import { getPlayerOnFrame, getStartOfAction } from "~/viewer/viewerUtil";
 import { getPlayerColor } from "~/common/util";
-import { createWorker } from "~/workerUtil";
+import { parsePacket } from "~/parser/liveParser";
 
 export const defaultSpectateStoreState: SpectateStore = {
   frame: 0,
@@ -52,6 +52,7 @@ export const spectateStore = replayState;
 
 const defaultNonReactiveState: NonReactiveState = {
   payloadSizes: undefined,
+  replayFormatVersion: "0.1.0.0", // TODO: import from liveparser (circular dependency)
   gameFrames: [],
   latestFinalizedFrame: undefined
 }
@@ -301,6 +302,36 @@ function handleFrameBookendEvent(frameBookend: FrameBookendEvent): void {
   }
 }
 
+function connectWS(url: string): WebSocket {
+  const ws = new WebSocket(url);
+  ws.binaryType = "arraybuffer";
+
+  ws.onmessage = (msg) => {
+    handleGameData(msg.data);
+  };
+
+  ws.onerror = (err) => {
+    console.error("WebSocket error:", err);
+  }
+
+  ws.onclose = (msg) => {
+    console.log("WebSocket closed:", msg);
+  }
+
+  return ws;
+}
+
+function handleGameData(payload: ArrayBuffer) {
+  const gameEvents = parsePacket(new Uint8Array(payload));
+
+  batch(() => {
+    gameEvents.forEach((gameEvent) => {
+      setReplayStateFromGameEvent(gameEvent)
+    });
+  });
+}
+
+
 createRoot(() => {
   // Set up store on spectate of different stream
   createEffect(async () => {
@@ -313,10 +344,10 @@ createRoot(() => {
       return;
     }
 
-    const worker = createWorker(newWsUrl);
+    const ws = connectWS(newWsUrl);
 
     onCleanup(() => {
-      worker.terminate();
+      ws.close();
     });
   });
 

@@ -41,7 +41,7 @@ const buildCssPlugin = {
 }
 
 const buildOptions = {
-  entryPoints: ["src/index.tsx", "src/worker/worker.ts"],
+  entryPoints: ["src/index.tsx"],
   bundle: true,
   outdir: "dist/",
   minify: true,

@@ -8,7 +8,7 @@ import type {
   GameEvent,
   FrameBookend,
 } from "~/common/types";
-import { WorkerState } from "~/worker/worker";
+import { nonReactiveState } from "~/state/spectateStore";
 
 // This is a basic parser for use in the browser. It is based off of the replay
 // format spec up to 3.9.0.0. It is incomplete, I have left out things I don't
@@ -21,7 +21,7 @@ export function add(v: number): number {
   return v + 1;
 }
 
-export function parsePacket(rawPacket: Uint8Array, workerState: WorkerState): GameEvent[] {
+export function parsePacket(rawPacket: Uint8Array): GameEvent[] {
   const rawData = new DataView(
     rawPacket.buffer,
     rawPacket.byteOffset
@@ -35,7 +35,7 @@ export function parsePacket(rawPacket: Uint8Array, workerState: WorkerState): Ga
     let newOffset: number, gameEvent: GameEvent | null;
 
     // TODO: TS fixes for knowing command payload -> game start -> everything else
-    [newOffset, gameEvent] = parseEvent(rawData, offset, workerState);
+    [newOffset, gameEvent] = parseEvent(rawData, offset);
     offset = newOffset;
     if (gameEvent !== null) gameEvents.push(gameEvent);
   }
@@ -45,23 +45,22 @@ export function parsePacket(rawPacket: Uint8Array, workerState: WorkerState): Ga
 
 function parseEvent(
   rawData: DataView,
-  offset: number,
-  workerState: WorkerState
+  offset: number
 ): [number, GameEvent | null] {
-  const replayVersion = workerState.replayFormatVersion ?? '3.18.0.0';
-  const payloadSizes = workerState.payloadSizes;
+  const replayVersion = nonReactiveState.replayFormatVersion ?? '3.18.0.0';
+  const payloadSizes = nonReactiveState.payloadSizes;
 
   const command = readUint(rawData, 8, replayVersion, firstVersion, offset);
   let gameEvent: GameEvent | null = null;
   switch (command) {
     case 0x35:
       const commandPayloadSizes = parseEventPayloadsEvent(rawData, offset); // this offset will always be 0
-      workerState.payloadSizes = commandPayloadSizes;
+      nonReactiveState.payloadSizes = commandPayloadSizes;
       gameEvent = { type: "event_payloads", data: null };
       return [offset + commandPayloadSizes[command] + 0x01, gameEvent];
     case 0x36:
       const gameSettings = parseGameStartEvent(rawData, offset, /* metadata */);
-      workerState.replayFormatVersion = gameSettings.replayFormatVersion;
+      nonReactiveState.replayFormatVersion = gameSettings.replayFormatVersion;
       gameEvent = { type: "game_start", data: gameSettings };
       break;
     case 0x37:
