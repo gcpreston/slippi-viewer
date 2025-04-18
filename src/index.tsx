@@ -4,6 +4,7 @@ import { setWsUrl } from "~/state/spectateStore";
 
 interface HTMLSlippiViewer extends HTMLElement {
   spectate(wsUrl: string | null): void;
+  clear(): void;
 }
 
 customElement("slippi-viewer", { zipsBaseUrl: "/" },
@@ -13,5 +14,6 @@ customElement("slippi-viewer", { zipsBaseUrl: "/" },
     // https://stackoverflow.com/a/60526280
     element.innerHTML = '<link href="https://fonts.googleapis.com/icon?family=Material+Icons|Material+Icons+Outlined" rel="stylesheet" />';
     element.spectate = setWsUrl;
+    element.clear = () => setWsUrl(null);
     return (<MiniApp zipsBaseUrl={props.zipsBaseUrl} /> as HTMLSlippiViewer);
   });
