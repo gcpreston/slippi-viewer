@@ -24,7 +24,7 @@
 
       function handleFileUpload() {
         const replayFile = input.files[0];
-        viewer.setReplay(replayFile);
+        if (replayFile) viewer.setReplay(replayFile);
       }
     </script>
   </body>
