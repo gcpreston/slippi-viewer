@@ -80,10 +80,7 @@ export function MiniApp({ zipsBaseUrl }: MiniAppProps) {
       </style>
 
       <div class="flex max-h-screen flex-grow flex-col gap-2 px-0">
-        <Show
-          when={Boolean(replayPointer())}
-          fallback={<div class="text-center italic">Indicate a replay to get started.</div>}
-        >
+        <Show when={Boolean(replayPointer())}>
           {replayPointer()?.mode === "spectate" ?
             <Viewer />
             :
