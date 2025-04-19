@@ -1,7 +1,7 @@
 import { createMemo, For, Match, Switch } from "solid-js";
 import { itemNamesById } from "~/common/ids";
 import { ItemUpdate, PlayerUpdate, NonReactiveState } from "~/common/types";
-import { nonReactiveState } from "~/state/spectateStore";
+import { access } from "~/state/accessor";
 
 // TODO: characters projectiles
 
@@ -119,7 +119,7 @@ function LuigiFireball(props: { item: ItemUpdate }) {
 
 function YoshiEgg(props: { item: ItemUpdate }) {
   // states: 0 = held, 1 = thrown, 2 = exploded
-  const ownerState = createMemo(() => getOwner(nonReactiveState, props.item).state);
+  const ownerState = createMemo(() => getOwner(props.item).state);
   return (
     <>
       <circle
@@ -142,7 +142,7 @@ function YoshiEgg(props: { item: ItemUpdate }) {
 function Turnip(props: { item: ItemUpdate }) {
   // states: 0 = held, 1 = bouncing?, 2 = thrown
   // face: props.item.peachTurnipFace
-  const ownerState = createMemo(() => getOwner(nonReactiveState, props.item).state);
+  const ownerState = createMemo(() => getOwner(props.item).state);
   return (
     <>
       <circle
@@ -280,6 +280,6 @@ function FlyGuy(props: { item: ItemUpdate }) {
   );
 }
 
-function getOwner(nonReactiveState: NonReactiveState, item: ItemUpdate): PlayerUpdate {
-  return nonReactiveState.gameFrames[item.frameNumber].players[item.owner];
+function getOwner(item: ItemUpdate): PlayerUpdate {
+  return access("frames")[item.frameNumber].players[item.owner];
 }

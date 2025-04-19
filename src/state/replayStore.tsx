@@ -2,9 +2,7 @@ import createRAF, { targetFPS } from "@solid-primitives/raf";
 import { batch, createEffect, createResource } from "solid-js";
 import { createStore } from "solid-js/store";
 import {
-  ActionName,
   actionNameById,
-  AttackName,
   characterNameByExternalId,
   characterNameByInternalId,
 } from "~/common/ids";
@@ -21,7 +19,7 @@ import { parseReplay } from "~/parse/parser";
 import { CharacterAnimations, fetchAnimations } from "~/viewer/animationCache";
 import { actionMapByInternalId } from "~/viewer/characters";
 import { Character } from "~/viewer/characters/character";
-import { getPlayerOnFrame, getStartOfAction } from "~/viewer/slippilabViewerUtil";
+import { getPlayerOnFrame, getStartOfAction } from "~/viewer/viewerUtil";
 import colors from "tailwindcss/colors";
 // import { fileStore } from "~/state/fileStore";
 import { decode } from "@shelacek/ubjson";
@@ -53,8 +51,6 @@ export interface ReplayStore {
   zoom: number;
   isDebug: boolean;
   isFullscreen: boolean;
-  customAction: ActionName;
-  customAttack: AttackName;
 }
 export const defaultReplayStoreState: ReplayStore = {
   frame: 0,
@@ -65,9 +61,7 @@ export const defaultReplayStoreState: ReplayStore = {
   running: false,
   zoom: 1,
   isDebug: false,
-  isFullscreen: false,
-  customAction: "Passive",
-  customAttack: "Up Tilt",
+  isFullscreen: false
 };
 
 const [replayState, setReplayState] = createStore<ReplayStore>(
@@ -248,8 +242,7 @@ function computeRenderData(
   const startOfActionPlayerState: PlayerState = (
     getPlayerOnFrame(
       playerUpdate.playerIndex,
-      getStartOfAction(playerState, replayState.replayData!),
-      replayState.replayData!
+      getStartOfAction(playerState),
     ) as PlayerUpdateWithNana
   )[isNana ? "nanaState" : "state"];
   const actionName = actionNameById[playerState.actionStateId];
@@ -334,8 +327,7 @@ function getDamageFlyRollRotation(
   const previousState = (
     getPlayerOnFrame(
       playerState.playerIndex,
-      playerState.frameNumber - 1,
-      replayState.replayData!
+      playerState.frameNumber - 1
     ) as PlayerUpdateWithNana
   )[playerState.isNana ? "nanaState" : "state"];
   const deltaX = playerState.xPosition - previousState.xPosition;
@@ -355,8 +347,7 @@ function getSpacieUpBRotation(
 ): number {
   const startOfActionPlayer = getPlayerOnFrame(
     playerState.playerIndex,
-    getStartOfAction(playerState, replayState.replayData!),
-    replayState.replayData!
+    getStartOfAction(playerState)
   );
   const joystickDegrees =
     ((startOfActionPlayer.inputs.processed.joystickY === 0 &&

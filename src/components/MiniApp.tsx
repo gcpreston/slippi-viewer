@@ -1,12 +1,13 @@
-import { createRoot, createSignal, Show } from "solid-js";
+import { Show } from "solid-js";
 import { Viewer } from "~/components/viewer/Viewer";
-import { Viewer as SlippilabViewer } from "~/components/slippilabViewer/Viewer";
 import { fetchAnimations } from "~/viewer/animationCache";
 import "~/state/spectateStore";
-import { setWsUrl, setZipsBaseUrl } from "~/state/spectateStore";
+import { setZipsBaseUrl } from "~/state/spectateStore";
 import style from "~/css/index.css";
 import muiStyle from "~/css/mui.css";
-import { setReplay } from "~/state/replayStore";
+import { replayPointer } from "~/state/accessor";
+
+export { setReplayPointerWrapper } from "~/state/accessor";
 
 /**
  * THE VISION FOR PORTABLE VIEWER
@@ -31,36 +32,6 @@ type MiniAppProps = {
   zipsBaseUrl?: string
 };
 
-type ReplayPointer = {
-  mode: "replay",
-  file: File
-} | {
-  mode: "spectate",
-  url: string
-}
-
-type API = {
-  replayPointer(): ReplayPointer | null,
-  setReplayPointerWrapper(p: ReplayPointer | null): void;
-};
-
-const { replayPointer, setReplayPointerWrapper } = createRoot<API>(() => {
-  const [replayPointer, setReplayPointer] = createSignal<ReplayPointer | null>(null);
-
-  const setReplayPointerWrapper = (p: ReplayPointer | null) => {
-    if (p?.mode === "spectate") {
-      setWsUrl(p.url);
-    } else if (p?.mode === "replay") {
-      setReplay(p.file);
-    }
-    setReplayPointer(p);
-  }
-
-  return { replayPointer, setReplayPointerWrapper };
-});
-
-export { setReplayPointerWrapper };
-
 export function MiniApp({ zipsBaseUrl }: MiniAppProps) {
   if (zipsBaseUrl) {
     setZipsBaseUrl(zipsBaseUrl);
@@ -81,11 +52,7 @@ export function MiniApp({ zipsBaseUrl }: MiniAppProps) {
 
       <div class="flex max-h-screen flex-grow flex-col gap-2 px-0">
         <Show when={Boolean(replayPointer())}>
-          {replayPointer()?.mode === "spectate" ?
-            <Viewer />
-            :
-            <SlippilabViewer />
-          }
+          <Viewer />
         </Show>
       </div>
     </>

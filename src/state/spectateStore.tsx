@@ -39,9 +39,7 @@ export const defaultSpectateStoreState: SpectateStore = {
   running: false,
   zoom: 1,
   isDebug: false,
-  isFullscreen: false,
-  customAction: "Passive",
-  customAttack: "Up Tilt",
+  isFullscreen: false
 };
 
 const [replayState, setReplayState] = createStore<SpectateStore>(

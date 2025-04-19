@@ -30,8 +30,6 @@ export type SpectateStore = {
   zoom: number;
   isDebug: boolean;
   isFullscreen: boolean;
-  customAction: ActionName;
-  customAttack: AttackName;
 };
 
 export type SpectateData = {
@@ -39,7 +37,7 @@ export type SpectateData = {
 
   /** Cause of game end. To determine winner you must examine the last frame. */
   readonly ending?: GameEnding;
-}
+};
 
 export type NonReactiveState = {
   payloadSizes?: CommandPayloadSizes;
@@ -49,7 +47,7 @@ export type NonReactiveState = {
    */
   gameFrames: Frame[];
   latestFinalizedFrame?: number;
-}
+};
 
 /**
  * internal use only. The size of each event is announced at the start of the

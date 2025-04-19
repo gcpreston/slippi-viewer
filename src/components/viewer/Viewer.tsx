@@ -4,12 +4,14 @@ import { HUD } from "~/components/viewer/HUD";
 import { Players } from "~/components/viewer/Player";
 import { Stage } from "~/components/viewer/Stage";
 import { Item } from "~/components/viewer/Item";
-import { SpectateControls } from "./SpectateControls";
+import { SpectateControls } from "~/components/viewer/SpectateControls";
+import { Controls } from "~/components/viewer/Controls";
 import { nonReactiveState, spectateStore } from "~/state/spectateStore";
+import { access, replayPointer } from "~/state/accessor";
 
 export function Viewer() {
   const items = createMemo(
-    () => nonReactiveState.gameFrames[spectateStore.frame]?.items ?? []
+    () => access("currentFrame")?.items ?? []
   );
   const showState = () => {
     console.log('spectateStore', spectateStore);
@@ -19,7 +21,7 @@ export function Viewer() {
     <div class="flex flex-col overflow-y-auto pb-4">
       {spectateStore.isDebug && <button onClick={showState}>Debug</button>}
       <Show
-        when={spectateStore.playbackData?.settings && nonReactiveState.gameFrames.length > spectateStore.frame}
+        when={access("settings") && access("frames").length > access("frame")} // this is really spectate-only behavior
         fallback={<div class="flex justify-center italic">Waiting for game...</div>}
       >
         <svg class="rounded-t border bg-slate-50" viewBox="-365 -300 730 600">
@@ -33,7 +35,7 @@ export function Viewer() {
             <HUD />
           </g>
         </svg>
-        <SpectateControls />
+        {replayPointer()?.mode === "spectate" ? <SpectateControls /> : <Controls />}
       </Show>
     </div>
   );
