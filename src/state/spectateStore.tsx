@@ -453,8 +453,7 @@ function computeRenderData(
   const startOfActionPlayerState: PlayerState = (
     getPlayerOnFrame(
       playerUpdate.playerIndex,
-      getStartOfAction(playerState, nonReactiveState),
-      nonReactiveState
+      getStartOfAction(playerState)
     ) as PlayerUpdateWithNana
   )[isNana ? "nanaState" : "state"];
   const actionName = actionNameById[playerState.actionStateId];
@@ -539,8 +538,7 @@ function getDamageFlyRollRotation(
   const previousState = (
     getPlayerOnFrame(
       playerState.playerIndex,
-      playerState.frameNumber - 1,
-      nonReactiveState
+      playerState.frameNumber - 1
     ) as PlayerUpdateWithNana
   )[playerState.isNana ? "nanaState" : "state"];
   const deltaX = playerState.xPosition - previousState.xPosition;
@@ -560,8 +558,7 @@ function getSpacieUpBRotation(
 ): number {
   const startOfActionPlayer = getPlayerOnFrame(
     playerState.playerIndex,
-    getStartOfAction(playerState, nonReactiveState),
-    nonReactiveState
+    getStartOfAction(playerState)
   );
   const joystickDegrees =
     ((startOfActionPlayer.inputs.processed.joystickY === 0 &&
