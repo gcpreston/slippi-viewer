@@ -1,12 +1,12 @@
 import { createRoot, createSignal, Show } from "solid-js";
 import { Viewer } from "~/components/viewer/Viewer";
+import { Viewer as SlippilabViewer } from "~/components/slippilabViewer/Viewer";
 import { fetchAnimations } from "~/viewer/animationCache";
 import "~/state/spectateStore";
-import { setZipsBaseUrl, wsUrl } from "~/state/spectateStore";
+import { setWsUrl, setZipsBaseUrl } from "~/state/spectateStore";
 import style from "~/css/index.css";
 import muiStyle from "~/css/mui.css";
-import { SpectateStore } from "~/common/types";
-import { ReplayStore } from "~/state/replayStore";
+import { setReplay } from "~/state/replayStore";
 
 /**
  * THE VISION FOR PORTABLE VIEWER
@@ -31,17 +31,35 @@ type MiniAppProps = {
   zipsBaseUrl?: string
 };
 
+type ReplayPointer = {
+  mode: "replay",
+  file: File
+} | {
+  mode: "spectate",
+  url: string
+}
+
 type API = {
-  store(): SpectateStore | ReplayStore | null,
-  setStore(t: SpectateStore | ReplayStore | null): void;
+  replayPointer(): ReplayPointer | null,
+  setReplayPointerWrapper(p: ReplayPointer | null): void;
 };
 
-const { store, setStore } = createRoot<API>(() => {
-  const [store, setStore] = createSignal<SpectateStore | ReplayStore | null>(null);
-  return { store, setStore };
+const { replayPointer, setReplayPointerWrapper } = createRoot<API>(() => {
+  const [replayPointer, setReplayPointer] = createSignal<ReplayPointer | null>(null);
+
+  const setReplayPointerWrapper = (p: ReplayPointer | null) => {
+    if (p?.mode === "spectate") {
+      setWsUrl(p.url);
+    } else if (p?.mode === "replay") {
+      setReplay(p.file);
+    }
+    setReplayPointer(p);
+  }
+
+  return { replayPointer, setReplayPointerWrapper };
 });
 
-export { setStore };
+export { setReplayPointerWrapper };
 
 export function MiniApp({ zipsBaseUrl }: MiniAppProps) {
   if (zipsBaseUrl) {
@@ -62,12 +80,15 @@ export function MiniApp({ zipsBaseUrl }: MiniAppProps) {
       </style>
 
       <div class="flex max-h-screen flex-grow flex-col gap-2 px-0">
-        <div>Does the settable work: {test()}</div>
         <Show
-          when={Boolean(wsUrl())}
-          fallback={<div class="text-center italic">Click on a stream to get started</div>}
+          when={Boolean(replayPointer())}
+          fallback={<div class="text-center italic">Indicate a replay to get started.</div>}
         >
-          <Viewer />
+          {replayPointer()?.mode === "spectate" ?
+            <Viewer />
+            :
+            <SlippilabViewer />
+          }
         </Show>
       </div>
     </>

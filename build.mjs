@@ -40,6 +40,18 @@ const buildCssPlugin = {
   },
 }
 
+const skipUbjsonUtilResolutionPlugin = {
+  name: "skipUbjsonUtilResolutionPlugin",
+  setup(build) {
+    build.onResolve({ filter: /^util$/ }, args => {
+      console.log('resolving util', args);
+      if (args.resolveDir.endsWith("@shelacek/ubjson/dist")) {
+        return { external: true };
+      }
+    })
+  }
+}
+
 const buildOptions = {
   entryPoints: ["src/index.tsx"],
   bundle: true,
@@ -50,7 +62,7 @@ const buildOptions = {
     ".css": "text"
   },
   logLevel: "info",
-  plugins: [solidPlugin(), buildCssPlugin],
+  plugins: [solidPlugin(), buildCssPlugin, skipUbjsonUtilResolutionPlugin],
 }
 
 if (process.argv.length > 2 && ["--watch", "-w"].includes(process.argv[2])) {

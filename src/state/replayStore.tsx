@@ -44,8 +44,6 @@ export interface RenderData {
 
 export interface ReplayStore {
   replayData?: ReplayData;
-  highlights: Record<string, Highlight[]>;
-  selectedHighlight?: [string, Highlight];
   animations: (CharacterAnimations | undefined)[];
   frame: number;
   renderDatas: RenderData[];
@@ -59,7 +57,6 @@ export interface ReplayStore {
   customAttack: AttackName;
 }
 export const defaultReplayStoreState: ReplayStore = {
-  highlights: {},
   frame: 0,
   renderDatas: [],
   animations: Array(4).fill(undefined),
