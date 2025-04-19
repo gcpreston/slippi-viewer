@@ -3,7 +3,7 @@ import { MiniApp } from "~/components/MiniApp";
 import { setWsUrl } from "~/state/spectateStore";
 
 interface HTMLSlippiViewer extends HTMLElement {
-  spectate(wsUrl: string | null): void;
+  spectate(wsUrl: string): void;
   clear(): void;
 }
 
