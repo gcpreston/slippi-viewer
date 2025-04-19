@@ -56,9 +56,9 @@ const defaultNonReactiveState: NonReactiveState = {
 }
 
 export let nonReactiveState = structuredClone(defaultNonReactiveState);
+let ws: WebSocket | null;
 
 // TODO: Add to createRoot
-export const [wsUrl, setWsUrl] = createSignal<string | null>(null);
 export const [zipsBaseUrl, setZipsBaseUrl] = createSignal<string>("/");
 
 // Highlight code removed
@@ -307,6 +307,7 @@ function connectWS(url: string): WebSocket {
 
   ws.onmessage = (msg) => {
     handleGameData(msg.data);
+    return false;
   };
 
   ws.onerror = (err) => {
@@ -314,7 +315,7 @@ function connectWS(url: string): WebSocket {
   }
 
   ws.onclose = (msg) => {
-    console.log("WebSocket closed:", msg);
+    console.log("WebSocket closed:", msg.code);
   }
 
   return ws;
@@ -330,26 +331,21 @@ function handleGameData(payload: ArrayBuffer) {
   });
 }
 
+export function setWsUrl(url: string | null) {
+  stop();
+  ws?.close();
+
+  nonReactiveState = structuredClone(defaultNonReactiveState);
+  setReplayState(structuredClone(defaultSpectateStoreState));
+
+  if (url === null) {
+    return;
+  }
+
+  ws = connectWS(url);
+}
 
 createRoot(() => {
-  // Set up store on spectate of different stream
-  createEffect(async () => {
-    const newWsUrl = wsUrl();
-
-    nonReactiveState = structuredClone(defaultNonReactiveState);
-    setReplayState(structuredClone(defaultSpectateStoreState));
-
-    if (newWsUrl === null) {
-      return;
-    }
-
-    const ws = connectWS(newWsUrl);
-
-    onCleanup(() => {
-      ws.close();
-    });
-  });
-
   const animationResources = [];
   for (let playerIndex = 0; playerIndex < 4; playerIndex++) {
     animationResources.push(
@@ -481,9 +477,9 @@ function computeRenderData(
       : animationPathOrFrameReference;
   const rotation =
     animationName === "DamageFlyRoll"
-      ? getDamageFlyRollRotation(replayState, playerState)
+      ? getDamageFlyRollRotation(playerState)
       : isSpacieUpB(playerState)
-      ? getSpacieUpBRotation(replayState, playerState)
+      ? getSpacieUpBRotation(playerState)
       : 0;
   // Some animations naturally turn the player around, but facingDirection
   // updates partway through the animation and incorrectly flips the
@@ -532,7 +528,6 @@ function computeRenderData(
 // opposite direction (that scale happens first) and the flip of (0,1) is still
 // (0, 1)
 function getDamageFlyRollRotation(
-  replayState: SpectateStore,
   playerState: PlayerState
 ): number {
   const previousState = (
@@ -553,7 +548,6 @@ function getDamageFlyRollRotation(
 // 0 - 0 = 0, so (1,0) is unaltered when facing right
 // 0 - 180 = -180, so (1,0) is flipped when facing left
 function getSpacieUpBRotation(
-  replayState: SpectateStore,
   playerState: PlayerState
 ): number {
   const startOfActionPlayer = getPlayerOnFrame(

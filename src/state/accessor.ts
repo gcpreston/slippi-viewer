@@ -24,6 +24,10 @@ export const { replayPointer, setReplayPointerWrapper } = createRoot<API>(() => 
   const [replayPointer, setReplayPointer] = createSignal<ReplayPointer | null>(null);
 
   const setReplayPointerWrapper = (p: ReplayPointer | null) => {
+    if (p === null) {
+      setWsUrl(null);
+    }
+
     if (p?.mode === "spectate") {
       setWsUrl(p.url);
     } else if (p?.mode === "replay") {
