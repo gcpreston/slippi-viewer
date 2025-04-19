@@ -27,7 +27,7 @@ import { CharacterAnimations, fetchAnimations } from "~/viewer/animationCache";
 import { actionMapByInternalId } from "~/viewer/characters";
 import { getPlayerOnFrame, getStartOfAction } from "~/viewer/viewerUtil";
 import { getPlayerColor } from "~/common/util";
-import { parsePacket } from "~/parser/liveParser";
+import { parsePacket } from "~/parse/liveParser";
 
 export const defaultSpectateStoreState: SpectateStore = {
   frame: 0,
@@ -59,6 +59,7 @@ const defaultNonReactiveState: NonReactiveState = {
 
 export let nonReactiveState = structuredClone(defaultNonReactiveState);
 
+// TODO: Add to createRoot
 export const [wsUrl, setWsUrl] = createSignal<string | null>(null);
 export const [zipsBaseUrl, setZipsBaseUrl] = createSignal<string>("/");
 

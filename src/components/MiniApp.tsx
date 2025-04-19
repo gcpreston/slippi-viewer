@@ -1,10 +1,12 @@
-import { Show } from "solid-js";
+import { createRoot, createSignal, Show } from "solid-js";
 import { Viewer } from "~/components/viewer/Viewer";
 import { fetchAnimations } from "~/viewer/animationCache";
 import "~/state/spectateStore";
 import { setZipsBaseUrl, wsUrl } from "~/state/spectateStore";
 import style from "~/css/index.css";
 import muiStyle from "~/css/mui.css";
+import { SpectateStore } from "~/common/types";
+import { ReplayStore } from "~/state/replayStore";
 
 /**
  * THE VISION FOR PORTABLE VIEWER
@@ -29,6 +31,18 @@ type MiniAppProps = {
   zipsBaseUrl?: string
 };
 
+type API = {
+  store(): SpectateStore | ReplayStore | null,
+  setStore(t: SpectateStore | ReplayStore | null): void;
+};
+
+const { store, setStore } = createRoot<API>(() => {
+  const [store, setStore] = createSignal<SpectateStore | ReplayStore | null>(null);
+  return { store, setStore };
+});
+
+export { setStore };
+
 export function MiniApp({ zipsBaseUrl }: MiniAppProps) {
   if (zipsBaseUrl) {
     setZipsBaseUrl(zipsBaseUrl);
@@ -48,6 +62,7 @@ export function MiniApp({ zipsBaseUrl }: MiniAppProps) {
       </style>
 
       <div class="flex max-h-screen flex-grow flex-col gap-2 px-0">
+        <div>Does the settable work: {test()}</div>
         <Show
           when={Boolean(wsUrl())}
           fallback={<div class="text-center italic">Click on a stream to get started</div>}
