@@ -18,6 +18,16 @@ export interface RenderData {
   characterData: Character;
 }
 
+export interface ReplayData {
+  readonly settings: GameSettings;
+  /**
+   * Player control starts at 84. Timer starts at 123.
+   */
+  readonly frames: Frame[];
+  /** Cause of game end. To determine winner you must examine the last frame. */
+  readonly ending: GameEnding;
+}
+
 export type SpectateStore = {
   playbackData?: SpectateData;
   animations: (CharacterAnimations | undefined)[];

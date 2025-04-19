@@ -6,7 +6,7 @@ import type {
   PlayerInputs,
   PlayerState,
 } from "~/common/types";
-import { ReplayData } from "~/common/slippilabTypes";
+import { ReplayData } from "~/common/types";
 
 // This is a basic parser for use in the browser. It is based off of the replay
 // format spec up to 3.9.0.0. It is incomplete, I have left out things I don't

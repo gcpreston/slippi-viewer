@@ -13,7 +13,7 @@ import {
   PlayerUpdate,
   PlayerUpdateWithNana,
 } from "~/common/types";
-import { ReplayData } from "~/common/slippilabTypes";
+import { ReplayData } from "~/common/types";
 import { parseReplay } from "~/parse/parser";
 // import { currentSelectionStore } from "~/state/selectionStore";
 import { CharacterAnimations, fetchAnimations } from "~/viewer/animationCache";
