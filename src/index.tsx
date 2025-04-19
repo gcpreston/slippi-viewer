@@ -1,8 +1,8 @@
 import { customElement } from "solid-element";
-import { MiniApp } from "~/components/MiniApp";
-import { setWsUrl } from "~/state/spectateStore";
+import { MiniApp, setReplayPointerWrapper } from "~/components/MiniApp";
 
 interface HTMLSlippiViewer extends HTMLElement {
+  setReplay(replayFile: File): void;
   spectate(wsUrl: string): void;
   clear(): void;
 }
@@ -13,7 +13,15 @@ customElement("slippi-viewer", { zipsBaseUrl: "/" },
     // in the main document.
     // https://stackoverflow.com/a/60526280
     element.innerHTML = '<link href="https://fonts.googleapis.com/icon?family=Material+Icons|Material+Icons+Outlined" rel="stylesheet" />';
-    element.spectate = setWsUrl;
-    element.clear = () => setWsUrl(null);
+
+    element.setReplay = (file: File) => {
+      setReplayPointerWrapper({ mode: "replay", file });
+    };
+    element.spectate = (url: string) => {
+      setReplayPointerWrapper({ mode: "spectate", url });
+    };
+    element.clear = () => {
+      setReplayPointerWrapper(null);
+    };
     return (<MiniApp zipsBaseUrl={props.zipsBaseUrl} /> as HTMLSlippiViewer);
   });

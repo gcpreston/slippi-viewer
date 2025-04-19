@@ -40,6 +40,28 @@ const buildCssPlugin = {
   },
 }
 
+// @shelacek/ubjson resolves TextEncoder/TextDecoder with a ternary operator
+// to conditionally require the classes from node's "util" module. However,
+// esbuild does not recognize this, and tries to resolve it since it assumes
+// it is being unconditionally loaded. This plugin marks these specific
+// requires as external, which makes esbuild not try to resolve them.
+//
+// It is worth noting that esbuild will correctly mark requires wrapped in
+// try/catch as external. It may be worthwhile to submit a PR to
+// @shelacek/ubjson to change the resolution method such that it works
+// as expected. (Or, to look at submitting an esbuild PR to do the same.)
+
+const skipUbjsonUtilResolutionPlugin = {
+  name: "skipUbjsonUtilResolutionPlugin",
+  setup(build) {
+    build.onResolve({ filter: /^util$/ }, args => {
+      if (args.resolveDir.endsWith("@shelacek/ubjson/dist")) {
+        return { external: true };
+      }
+    })
+  }
+}
+
 const buildOptions = {
   entryPoints: ["src/index.tsx"],
   bundle: true,
@@ -50,7 +72,7 @@ const buildOptions = {
     ".css": "text"
   },
   logLevel: "info",
-  plugins: [solidPlugin(), buildCssPlugin],
+  plugins: [solidPlugin(), buildCssPlugin, skipUbjsonUtilResolutionPlugin],
 }
 
 if (process.argv.length > 2 && ["--watch", "-w"].includes(process.argv[2])) {

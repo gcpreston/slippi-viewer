@@ -1,26 +1,23 @@
 import {
   PlayerState,
   PlayerUpdate,
-  PlayerUpdateWithNana,
-  NonReactiveState
+  PlayerUpdateWithNana
 } from "~/common/types";
+import { access } from "~/state/accessor";
 
 export function getStartOfAction(
-  playerState: PlayerState,
-  nonReactiveState: NonReactiveState
+  playerState: PlayerState
 ): number {
   let earliestStateOfAction = (
     getPlayerOnFrame(
       playerState.playerIndex,
-      playerState.frameNumber,
-      nonReactiveState
+      playerState.frameNumber
     ) as PlayerUpdateWithNana
   )[playerState.isNana ? "nanaState" : "state"];
   while (true) {
     const testEarlierState = getPlayerOnFrame(
       playerState.playerIndex,
-      earliestStateOfAction.frameNumber - 1,
-      nonReactiveState
+      earliestStateOfAction.frameNumber - 1
     )?.[playerState.isNana ? "nanaState" : "state"];
     if (
       testEarlierState === undefined ||
@@ -37,7 +34,6 @@ export function getStartOfAction(
 export function getPlayerOnFrame(
   playerIndex: number,
   frameNumber: number,
-  nonReactiveState: NonReactiveState
 ): PlayerUpdate {
-  return nonReactiveState.gameFrames[frameNumber]?.players[playerIndex];
+  return access("frames")[frameNumber]?.players[playerIndex];
 }

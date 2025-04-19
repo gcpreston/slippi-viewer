@@ -2,9 +2,12 @@ import { Show } from "solid-js";
 import { Viewer } from "~/components/viewer/Viewer";
 import { fetchAnimations } from "~/viewer/animationCache";
 import "~/state/spectateStore";
-import { setZipsBaseUrl, wsUrl } from "~/state/spectateStore";
+import { setZipsBaseUrl } from "~/state/spectateStore";
 import style from "~/css/index.css";
 import muiStyle from "~/css/mui.css";
+import { replayPointer } from "~/state/accessor";
+
+export { setReplayPointerWrapper } from "~/state/accessor";
 
 /**
  * THE VISION FOR PORTABLE VIEWER
@@ -48,10 +51,7 @@ export function MiniApp({ zipsBaseUrl }: MiniAppProps) {
       </style>
 
       <div class="flex max-h-screen flex-grow flex-col gap-2 px-0">
-        <Show
-          when={Boolean(wsUrl())}
-          fallback={<div class="text-center italic">Click on a stream to get started</div>}
-        >
+        <Show when={Boolean(replayPointer())}>
           <Viewer />
         </Show>
       </div>

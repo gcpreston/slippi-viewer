@@ -27,7 +27,7 @@ import { CharacterAnimations, fetchAnimations } from "~/viewer/animationCache";
 import { actionMapByInternalId } from "~/viewer/characters";
 import { getPlayerOnFrame, getStartOfAction } from "~/viewer/viewerUtil";
 import { getPlayerColor } from "~/common/util";
-import { parsePacket } from "~/parser/liveParser";
+import { parsePacket } from "~/parse/liveParser";
 
 export const defaultSpectateStoreState: SpectateStore = {
   frame: 0,
@@ -39,9 +39,7 @@ export const defaultSpectateStoreState: SpectateStore = {
   running: false,
   zoom: 1,
   isDebug: false,
-  isFullscreen: false,
-  customAction: "Passive",
-  customAttack: "Up Tilt",
+  isFullscreen: false
 };
 
 const [replayState, setReplayState] = createStore<SpectateStore>(
@@ -59,6 +57,7 @@ const defaultNonReactiveState: NonReactiveState = {
 
 export let nonReactiveState = structuredClone(defaultNonReactiveState);
 
+// TODO: Add to createRoot
 export const [wsUrl, setWsUrl] = createSignal<string | null>(null);
 export const [zipsBaseUrl, setZipsBaseUrl] = createSignal<string>("/");
 
@@ -454,8 +453,7 @@ function computeRenderData(
   const startOfActionPlayerState: PlayerState = (
     getPlayerOnFrame(
       playerUpdate.playerIndex,
-      getStartOfAction(playerState, nonReactiveState),
-      nonReactiveState
+      getStartOfAction(playerState)
     ) as PlayerUpdateWithNana
   )[isNana ? "nanaState" : "state"];
   const actionName = actionNameById[playerState.actionStateId];
@@ -540,8 +538,7 @@ function getDamageFlyRollRotation(
   const previousState = (
     getPlayerOnFrame(
       playerState.playerIndex,
-      playerState.frameNumber - 1,
-      nonReactiveState
+      playerState.frameNumber - 1
     ) as PlayerUpdateWithNana
   )[playerState.isNana ? "nanaState" : "state"];
   const deltaX = playerState.xPosition - previousState.xPosition;
@@ -561,8 +558,7 @@ function getSpacieUpBRotation(
 ): number {
   const startOfActionPlayer = getPlayerOnFrame(
     playerState.playerIndex,
-    getStartOfAction(playerState, nonReactiveState),
-    nonReactiveState
+    getStartOfAction(playerState)
   );
   const joystickDegrees =
     ((startOfActionPlayer.inputs.processed.joystickY === 0 &&
