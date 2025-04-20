@@ -27,7 +27,7 @@ import { CharacterAnimations, fetchAnimations } from "~/viewer/animationCache";
 import { actionMapByInternalId } from "~/viewer/characters";
 import { getPlayerOnFrame, getStartOfAction } from "~/viewer/viewerUtil";
 import { getPlayerColor } from "~/common/util";
-import { parsePacket } from "~/parse/liveParser";
+import { createWorker } from "~/workerUtil";
 
 export const defaultSpectateStoreState: SpectateStore = {
   frame: 0,
@@ -56,7 +56,7 @@ const defaultNonReactiveState: NonReactiveState = {
 }
 
 export let nonReactiveState = structuredClone(defaultNonReactiveState);
-let ws: WebSocket | null;
+let worker: Worker | undefined;
 
 // TODO: Add to createRoot
 export const [zipsBaseUrl, setZipsBaseUrl] = createSignal<string>("/");
@@ -301,39 +301,9 @@ function handleFrameBookendEvent(frameBookend: FrameBookendEvent): void {
   }
 }
 
-function connectWS(url: string): WebSocket {
-  const ws = new WebSocket(url);
-  ws.binaryType = "arraybuffer";
-
-  ws.onmessage = (msg) => {
-    handleGameData(msg.data);
-    return false;
-  };
-
-  ws.onerror = (err) => {
-    console.error("WebSocket error:", err);
-  }
-
-  ws.onclose = (msg) => {
-    console.log("WebSocket closed:", msg.code);
-  }
-
-  return ws;
-}
-
-function handleGameData(payload: ArrayBuffer) {
-  const gameEvents = parsePacket(new Uint8Array(payload));
-
-  batch(() => {
-    gameEvents.forEach((gameEvent) => {
-      setReplayStateFromGameEvent(gameEvent)
-    });
-  });
-}
-
 export function setWsUrl(url: string | null) {
   stop();
-  ws?.close();
+  worker?.terminate();
 
   nonReactiveState = structuredClone(defaultNonReactiveState);
   setReplayState(structuredClone(defaultSpectateStoreState));
@@ -342,7 +312,7 @@ export function setWsUrl(url: string | null) {
     return;
   }
 
-  ws = connectWS(url);
+  worker = createWorker(url);
 }
 
 createRoot(() => {

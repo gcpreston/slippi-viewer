@@ -6,6 +6,22 @@ import path from "node:path";
 import child_process from "node:child_process"
 import util from "node:util";
 
+const args = process.argv.slice(2);
+const watch = args.includes('--watch');
+const deploy = args.includes('--deploy');
+
+// Step 1: Build worker
+
+await build({
+  entryPoints: ["src/worker/worker.ts"],
+  outfile: "build/worker.js",
+  bundle: true,
+  minify: deploy,
+  logLevel: "info",
+});
+
+// Step 2: Build slippi-viewer with injected web worker
+
 const exec = util.promisify(child_process.exec);
 
 // Because a web component is being created, it cannot be styled by a CSS file
@@ -58,7 +74,22 @@ const skipUbjsonUtilResolutionPlugin = {
       if (args.resolveDir.endsWith("@shelacek/ubjson/dist")) {
         return { external: true };
       }
-    })
+    });
+  }
+};
+
+// https://github.com/evanw/esbuild/issues/312
+
+const workerPlugin = {
+  name: "workerPlugin",
+  setup(build) {
+    build.onLoad({ filter: /worker.ts/}, async (args) => {
+      const workerCode = await fs.promises.readFile("build/worker.js", 'utf8');
+      return {
+        loader: "text",
+        contents: workerCode
+      };
+    });
   }
 }
 
@@ -66,18 +97,20 @@ const buildOptions = {
   entryPoints: ["src/index.tsx"],
   bundle: true,
   outdir: "dist/",
-  minify: true,
+  minify: deploy,
   loader: {
     ".svg": "dataurl",
     ".css": "text"
   },
   logLevel: "info",
-  plugins: [solidPlugin(), buildCssPlugin, skipUbjsonUtilResolutionPlugin],
+  plugins: [solidPlugin(), buildCssPlugin, skipUbjsonUtilResolutionPlugin, workerPlugin],
 }
 
-if (process.argv.length > 2 && ["--watch", "-w"].includes(process.argv[2])) {
-  const buildContext = await context(buildOptions)
-  await buildContext.watch();
+if (watch) {
+  // TODO: Fix
+  context(buildOptions).then((ctx) => {
+    ctx.watch();
+  });
 } else {
-  await build(buildOptions);
+  build(buildOptions);
 }
