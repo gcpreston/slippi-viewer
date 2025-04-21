@@ -2,12 +2,13 @@ import { batch } from "solid-js";
 import { GameEvent } from "~/common/types";
 import { setReplayStateFromGameEvent } from "~/state/spectateStore";
 
-import workerUrl from "~/worker/workerUrl";
+import workerCode from "~/worker/worker";
 
 export function createWorker(wsUrl: string): Worker {
+  const workerUrl = URL.createObjectURL(new Blob([workerCode], { type:"text/javascript" }));
   console.log(`Creating worker from URL ${workerUrl}...`);
-  // const worker = new Worker("/assets/worker.js", { type: "module" });
   const worker = new Worker(workerUrl);
+  URL.revokeObjectURL(workerUrl);
 
   worker.onmessage = (event: MessageEvent) => {
     const gameEvents: GameEvent[] = event.data.value;

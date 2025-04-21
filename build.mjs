@@ -14,7 +14,7 @@ const deploy = args.includes('--deploy');
 
 await build({
   entryPoints: ["src/worker/worker.ts"],
-  outfile: "build/worker.js",
+  outdir: "build",
   bundle: true,
   minify: deploy,
   logLevel: "info",
@@ -47,7 +47,7 @@ const buildCssPlugin = {
 
     build.onResolve({ filter: /\.css/ }, args => {
       const fileName = path.basename(args.path);
-      return { path: path.join(import.meta.dirname, 'build/css', fileName) }
+      return { path: path.join(import.meta.dirname, "build/css", fileName) }
     });
 
     build.onEnd(() => {
@@ -78,16 +78,33 @@ const skipUbjsonUtilResolutionPlugin = {
   }
 };
 
+// Some hacking needs to be done to make Web Workers work in esbuild:
 // https://github.com/evanw/esbuild/issues/312
+//
+// Specifically, the extra challenge here is that we aren't sure to have access
+// to something like a /worker.js script on the server, since this web component
+// can be embedded wherever. To get around this, an inline worker is created
+// by taking the worker code directly, creating an object URL from it,
+// constructing the worker, then revoking the temporary URL, which is done in
+// workerUtil.ts.
+//
+// The extra complexity comes from the fact that the worker has to be bundled
+// too. So we do this as the first step of the build, and then point to the
+// bundled worker file (as text) when the worker is imported later.
 
 const workerPlugin = {
   name: "workerPlugin",
   setup(build) {
-    build.onLoad({ filter: /worker.ts/}, async (args) => {
-      const workerCode = await fs.promises.readFile("build/worker.js", 'utf8');
+    build.onResolve({ filter: /\/worker$/ }, async () => {
       return {
-        loader: "text",
-        contents: workerCode
+        path: path.join(import.meta.dirname, "build/worker.js"),
+        namespace: "worker"
+      };
+    });
+    build.onLoad({ filter: /\/worker.js$/, namespace: "worker" }, async (args) => {
+      return {
+        loader: "text" ,
+        contents: await fs.promises.readFile(args.path)
       };
     });
   }
