@@ -1,4 +1,4 @@
-import { build, context } from "esbuild";
+import { build } from "esbuild";
 import { solidPlugin } from "esbuild-plugin-solid";
 
 import fs from "node:fs";
@@ -7,7 +7,7 @@ import child_process from "node:child_process"
 import util from "node:util";
 
 const args = process.argv.slice(2);
-const watch = args.includes('--watch');
+// const watch = args.includes('--watch');
 const deploy = args.includes('--deploy');
 
 // Step 1: Build worker
@@ -123,11 +123,4 @@ const buildOptions = {
   plugins: [solidPlugin(), buildCssPlugin, skipUbjsonUtilResolutionPlugin, workerPlugin],
 }
 
-if (watch) {
-  // TODO: Fix
-  context(buildOptions).then((ctx) => {
-    ctx.watch();
-  });
-} else {
-  build(buildOptions);
-}
+build(buildOptions);
