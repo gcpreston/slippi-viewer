@@ -6,6 +6,22 @@ import path from "node:path";
 import child_process from "node:child_process"
 import util from "node:util";
 
+const args = process.argv.slice(2);
+const watch = args.includes('--watch');
+const deploy = args.includes('--deploy');
+
+// Step 1: Build worker
+
+await build({
+  entryPoints: ["src/worker/worker.ts"],
+  outdir: "build",
+  bundle: true,
+  minify: deploy,
+  logLevel: "info",
+});
+
+// Step 2: Build slippi-viewer with injected web worker
+
 const exec = util.promisify(child_process.exec);
 
 // Because a web component is being created, it cannot be styled by a CSS file
@@ -31,7 +47,7 @@ const buildCssPlugin = {
 
     build.onResolve({ filter: /\.css/ }, args => {
       const fileName = path.basename(args.path);
-      return { path: path.join(import.meta.dirname, 'build/css', fileName) }
+      return { path: path.join(import.meta.dirname, "build/css", fileName) }
     });
 
     build.onEnd(() => {
@@ -58,7 +74,39 @@ const skipUbjsonUtilResolutionPlugin = {
       if (args.resolveDir.endsWith("@shelacek/ubjson/dist")) {
         return { external: true };
       }
-    })
+    });
+  }
+};
+
+// Some hacking needs to be done to make Web Workers work in esbuild:
+// https://github.com/evanw/esbuild/issues/312
+//
+// Specifically, the extra challenge here is that we aren't sure to have access
+// to something like a /worker.js script on the server, since this web component
+// can be embedded wherever. To get around this, an inline worker is created
+// by taking the worker code directly, creating an object URL from it,
+// constructing the worker, then revoking the temporary URL, which is done in
+// workerUtil.ts.
+//
+// The extra complexity comes from the fact that the worker has to be bundled
+// too. So we do this as the first step of the build, and then point to the
+// bundled worker file (as text) when the worker is imported later.
+
+const workerPlugin = {
+  name: "workerPlugin",
+  setup(build) {
+    build.onResolve({ filter: /\/worker$/ }, async () => {
+      return {
+        path: path.join(import.meta.dirname, "build/worker.js"),
+        namespace: "worker"
+      };
+    });
+    build.onLoad({ filter: /\/worker.js$/, namespace: "worker" }, async (args) => {
+      return {
+        loader: "text" ,
+        contents: await fs.promises.readFile(args.path)
+      };
+    });
   }
 }
 
@@ -66,18 +114,20 @@ const buildOptions = {
   entryPoints: ["src/index.tsx"],
   bundle: true,
   outdir: "dist/",
-  minify: true,
+  minify: deploy,
   loader: {
     ".svg": "dataurl",
     ".css": "text"
   },
   logLevel: "info",
-  plugins: [solidPlugin(), buildCssPlugin, skipUbjsonUtilResolutionPlugin],
+  plugins: [solidPlugin(), buildCssPlugin, skipUbjsonUtilResolutionPlugin, workerPlugin],
 }
 
-if (process.argv.length > 2 && ["--watch", "-w"].includes(process.argv[2])) {
-  const buildContext = await context(buildOptions)
-  await buildContext.watch();
+if (watch) {
+  // TODO: Fix
+  context(buildOptions).then((ctx) => {
+    ctx.watch();
+  });
 } else {
-  await build(buildOptions);
+  build(buildOptions);
 }
