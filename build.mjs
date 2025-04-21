@@ -112,8 +112,8 @@ const workerPlugin = {
 
 const buildOptions = {
   entryPoints: ["src/index.tsx"],
-  bundle: true,
   outdir: "dist/",
+  bundle: true,
   minify: deploy,
   loader: {
     ".svg": "dataurl",
