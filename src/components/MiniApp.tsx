@@ -50,7 +50,7 @@ export function MiniApp({ zipsBaseUrl }: MiniAppProps) {
         {muiStyle}
       </style>
 
-      <div class="flex max-h-screen flex-grow flex-col gap-2 px-0">
+      <div class="flex max-h-full flex-grow flex-col gap-2 px-0">
         <Show when={Boolean(replayPointer())}>
           <Viewer />
         </Show>

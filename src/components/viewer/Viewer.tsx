@@ -18,7 +18,7 @@ export function Viewer() {
     console.log('nonReactiveState', nonReactiveState);
   };
   return (
-    <div class="flex flex-col overflow-y-auto pb-4">
+    <div class="flex flex-col overflow-y-auto">
       {spectateStore.isDebug && <button onClick={showState}>Debug</button>}
       <Show
         when={access("settings") && access("frames").length > access("frame")} // this is really spectate-only behavior
