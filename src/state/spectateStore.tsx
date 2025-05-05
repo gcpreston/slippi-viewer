@@ -128,12 +128,9 @@ export function adjust(delta: number): void {
 const [running, start, stop] = createRAF(
   targetFPS(
     () => {
-      // TODO: Fix joining replay mid-game
       const tryFrame = replayState.frame + replayState.framesPerTick;
       if (tryFrame < (nonReactiveState.latestFinalizedFrame ?? 0)) {
         setReplayState("frame", tryFrame);
-      } else if (replayState.gameEndFrame !== null && tryFrame > replayState.gameEndFrame) {
-        stop();
       }
     },
     () => replayState.fps
@@ -302,7 +299,6 @@ function handleFrameBookendEvent(frameBookend: FrameBookendEvent): void {
 }
 
 export function setWsUrl(url: string | null) {
-  stop();
   worker?.terminate();
 
   nonReactiveState = structuredClone(defaultNonReactiveState);
@@ -323,18 +319,17 @@ createRoot(() => {
         () => {
           const replay = replayState.playbackData;
           if (replay === undefined) {
-            return undefined;
+            return -1;
           }
-          // TODO: Remove this one when the code isn't awful lol
           if (replay.settings === undefined) {
-            return undefined
+            return -1;
           }
           const playerSettings = replay.settings.playerSettings[playerIndex];
           if (playerSettings === undefined) {
-            return undefined;
+            return -1;
           }
           if (nonReactiveState.gameFrames[replayState.frame] === undefined) {
-            return undefined;
+            return -1;
           }
 
           const playerUpdate =
@@ -356,12 +351,12 @@ createRoot(() => {
           }
           return playerSettings.externalCharacterId;
         },
-        (id) => (id === undefined ? undefined : fetchAnimations(id))
+        (id) => (id === -1 ? undefined : fetchAnimations(id))
       )
     );
   }
   animationResources.forEach(([dataSignal], playerIndex) =>
-    createEffect(() =>
+    createEffect(() => {
       // I can't use the obvious setReplayState("animations", playerIndex,
       // dataSignal()) because it will merge into the previous animations data
       // object, essentially overwriting the previous characters animation data
@@ -370,8 +365,8 @@ createRoot(() => {
         const newAnimations = [...animations];
         newAnimations[playerIndex] = dataSignal();
         return newAnimations;
-      })
-    )
+      });
+    })
   );
 
   createEffect(() => {
