@@ -1,6 +1,6 @@
 import { batch } from "solid-js";
 import { GameEvent } from "~/common/types";
-import { setReplayStateFromGameEvent } from "~/state/spectateStore";
+import { setReplayStateFromGameEvent, jumpToLive } from "~/state/spectateStore";
 
 import workerCode from "~/worker/worker";
 
@@ -9,6 +9,7 @@ export function createWorker(wsUrl: string): Worker {
   console.log(`Creating worker from URL ${workerUrl}...`);
   const worker = new Worker(workerUrl);
   URL.revokeObjectURL(workerUrl);
+  let isFirstMessage = true;
 
   worker.onmessage = (event: MessageEvent) => {
     const gameEvents: GameEvent[] = event.data.value;
@@ -19,6 +20,10 @@ export function createWorker(wsUrl: string): Worker {
       gameEvents.forEach((gameEvent) => {
         setReplayStateFromGameEvent(gameEvent)
       });
+      if (isFirstMessage) {
+        jumpToLive();
+        isFirstMessage = false;
+      }
     });
   };
 
