@@ -1,4 +1,3 @@
-import { ActionName, AttackName } from "~/common/ids";
 import { Character } from "~/viewer/characters/character";
 import { CharacterAnimations } from "~/viewer/animationCache";
 
@@ -74,6 +73,7 @@ export type ItemUpdateEvent = ItemUpdate;
 export type GameEndEvent = GameEnding;
 export type GameStartEvent = GameSettings;
 export type FrameBookendEvent = FrameBookend
+export type FodPlatformsEvent = FodPlatforms
 
 export type GameEvent = {
   type: "pre_frame_update",
@@ -99,6 +99,9 @@ export type GameEvent = {
 } | {
   type: "frame_bookend",
   data: FrameBookendEvent
+} | {
+  type: "fod_platforms",
+  data: FodPlatformsEvent
 };
 
 export interface GameSettings {
@@ -179,6 +182,7 @@ export interface Frame {
   /** Indexed by playerIndex (port - 1). Do not check length */
   readonly players: PlayerUpdate[];
   readonly items: ItemUpdate[];
+  readonly stage: StageState;
 }
 
 /** The inputs applied during this frame and the resulting state(s) */
@@ -302,6 +306,18 @@ export interface ItemUpdate {
   /** Mewtwo/Samus */
   readonly chargeShotChargeLevel: number;
   readonly owner: number;
+}
+
+export interface FodPlatforms {
+  readonly frameNumber: number;
+  readonly platform: number; // 0 = right, 1 = left
+  readonly height: number;
+}
+
+export interface StageState {
+  readonly frameNumber: number;
+  readonly fodLeftPlatformHeight: number;
+  readonly fodRightPlatformHeight: number;
 }
 
 export interface FrameBookend {
