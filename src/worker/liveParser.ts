@@ -7,6 +7,7 @@ import type {
   CommandPayloadSizes,
   GameEvent,
   FrameBookend,
+  FodPlatforms,
 } from "~/common/types";
 import { WorkerState } from "./worker";
 
@@ -89,8 +90,16 @@ function parseEvent(
       gameEvent = { type: "item_update", data: itemUpdate };
       break;
     case 0x3c:
-      const frameBookendEvent = parseFrameBookendEvent(rawData, offset, replayVersion);
-      gameEvent = { type: "frame_bookend", data: frameBookendEvent };
+      const frameBookend = parseFrameBookendEvent(rawData, offset, replayVersion);
+      gameEvent = { type: "frame_bookend", data: frameBookend };
+      break;
+    case 0x3f:
+      const fodPlatforms = parseFodPlatformsEvent(
+        rawData,
+        offset,
+        replayVersion
+      );
+      gameEvent = { type: "fod_platforms", data: fodPlatforms };
       break;
   }
 
@@ -780,6 +789,25 @@ function parseItemUpdateEvent(
       offset + 0x29
     ),
     owner: readInt(rawData, 8, replayVersion, "3.6.0.0", offset + 0x2a),
+  };
+}
+
+function parseFodPlatformsEvent(
+  rawData: DataView,
+  offset: number,
+  replayVersion: string
+): FodPlatforms {
+  return {
+    frameNumber:
+      readInt(rawData, 32, replayVersion, "3.18.0.0", offset + 0x01) + 123,
+    platform: readUint(rawData, 8, replayVersion, "3.18.0.0", offset + 0x05),
+    height: readFloat(
+      rawData,
+      32,
+      replayVersion,
+      "3.18.0.0",
+      offset + 0x06
+    ),
   };
 }
 

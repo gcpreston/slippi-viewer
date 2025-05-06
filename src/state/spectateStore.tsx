@@ -1,5 +1,5 @@
 import createRAF, { targetFPS } from "@solid-primitives/raf";
-import { batch, createEffect, createResource, createRoot, createSignal, onCleanup } from "solid-js";
+import { batch, createEffect, createResource, createRoot, createSignal } from "solid-js";
 import { createStore } from "solid-js/store";
 import {
   actionNameById,
@@ -22,11 +22,16 @@ import {
   GameStartEvent,
   NonReactiveState,
   FrameBookendEvent,
+  FodPlatformsEvent,
 } from "~/common/types";
 import { CharacterAnimations, fetchAnimations } from "~/viewer/animationCache";
 import { actionMapByInternalId } from "~/viewer/characters";
 import { getPlayerOnFrame, getStartOfAction } from "~/viewer/viewerUtil";
 import { getPlayerColor } from "~/common/util";
+import {
+  fodInitialLeftPlatformHeight,
+  fodInitialRightPlatformHeight
+} from "~/common/constants";
 import { createWorker } from "~/workerUtil";
 
 export const defaultSpectateStoreState: SpectateStore = {
@@ -164,6 +169,9 @@ export function setReplayStateFromGameEvent(gameEvent: GameEvent): void {
     case "frame_bookend":
       handleFrameBookendEvent(gameEvent.data);
       break;
+    case "fod_platforms":
+      handleFodPlatformsEvent(gameEvent.data);
+      break;
   }
 }
 
@@ -181,11 +189,27 @@ function handleGameStartEvent(settings: GameStartEvent) {
 
 function initFrameIfNeeded(frames: Frame[], frameNumber: number): Frame {
   if (frames[frameNumber] === undefined) {
+    const prevFrame = frames[frameNumber - 1];
+
+    let prevFodLeftPlatformHeight: number, prevFodRightPlatformHeight: number;
+    if (prevFrame) {
+      prevFodLeftPlatformHeight = prevFrame.stage.fodLeftPlatformHeight;
+      prevFodRightPlatformHeight = prevFrame.stage.fodRightPlatformHeight;
+    } else {
+      prevFodLeftPlatformHeight = fodInitialLeftPlatformHeight;
+      prevFodRightPlatformHeight = fodInitialRightPlatformHeight;
+    }
+
     // @ts-expect-error: randomSeed will be populated later if found.
     return {
       frameNumber: frameNumber,
       players: [],
       items: [],
+      stage: {
+        frameNumber: frameNumber,
+        fodLeftPlatformHeight: prevFodLeftPlatformHeight,
+        fodRightPlatformHeight: prevFodRightPlatformHeight,
+      }
     };
   } else {
     return frames[frameNumber];
@@ -243,19 +267,11 @@ function handlePostFrameUpdateEvent(playerState: PostFrameUpdateEvent): void {
     const players = frame.players.slice();
     const player: PlayerUpdate = { ...players[playerState.playerIndex], nanaState: playerState };
     players[player.playerIndex] = player;
-
-    // const frames = replayState.playbackData!.frames.slice();
-    // frames[playerState.frameNumber] = { ...frame, players };
-    // setReplayState("playbackData", { ...replayState.playbackData!, frames });
     nonReactiveState.gameFrames[playerState.frameNumber] = { ...frame, players };
   } else {
     const players = frame.players.slice();
     const player: PlayerUpdate = { ...players[playerState.playerIndex], state: playerState };
     players[player.playerIndex] = player;
-
-    // const frames = replayState.playbackData!.frames.slice();
-    // frames[playerState.frameNumber] = { ...frame, players };
-    // setReplayState("playbackData", { ...replayState.playbackData!, frames });
     nonReactiveState.gameFrames[playerState.frameNumber] = { ...frame, players };
   }
 }
@@ -270,22 +286,16 @@ function handleGameEndEvent(gameEnding: GameEndEvent) {
 function handleFrameStartEvent(frameStart: FrameStartEvent): void {
   const { frameNumber, randomSeed } = frameStart;
   const frame = initFrameIfNeeded(nonReactiveState.gameFrames, frameNumber);
-  // @ts-ignore not sure what to do about this
+  // @ts-ignore will only be readonly once frame is finalized
   frame.randomSeed = randomSeed;
-  // const frames = replayState.playbackData!.frames.slice();
-  // frames[frame.frameNumber] = frame;
-  // setReplayState("playbackData", { ...replayState.playbackData!, frames });
   nonReactiveState.gameFrames[frame.frameNumber] = frame;
 }
 
 function handleItemUpdateEvent(itemUpdate: ItemUpdateEvent): void {
-  // const frames = replayState.playbackData!.frames.slice();
   let frame = nonReactiveState.gameFrames[itemUpdate.frameNumber];
   const items = frame.items.slice();
   items.push(itemUpdate);
   frame = { ...frame, items };
-  // frames[itemUpdate.frameNumber] = frame;
-  // setReplayState("playbackData", { ...replayState.playbackData!, frames });
   nonReactiveState.gameFrames[itemUpdate.frameNumber] = frame;
 }
 
@@ -295,6 +305,18 @@ function handleFrameBookendEvent(frameBookend: FrameBookendEvent): void {
 
   if (prevLatestFrame === undefined) {
     setReplayState("frame", nonReactiveState.latestFinalizedFrame);
+  }
+}
+
+function handleFodPlatformsEvent(fodPlatforms: FodPlatformsEvent): void {
+  if (fodPlatforms.platform === 1) {
+    // @ts-ignore will only be readonly once frame is finalized
+    nonReactiveState.gameFrames[fodPlatforms.frameNumber].stage.fodLeftPlatformHeight =
+      fodPlatforms.height;
+  } else {
+    // @ts-ignore will only be readonly once frame is finalized
+    nonReactiveState.gameFrames[fodPlatforms.frameNumber].stage.fodRightPlatformHeight =
+      fodPlatforms.height;
   }
 }
 
