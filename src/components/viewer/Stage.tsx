@@ -1,5 +1,9 @@
 import { createMemo, For, Match, Switch } from "solid-js";
 import { stageNameByExternalId } from "~/common/ids";
+import {
+  fodInitialLeftPlatformHeight,
+  fodInitialRightPlatformHeight,
+} from "~/common/constants";
 import { access } from "~/state/accessor";
 
 export function Stage() {
@@ -346,11 +350,24 @@ function FountainOfDreams() {
     "-63.35, -4.5",
     "-63.33, 0.62",
   ];
-  const platforms = [
-    ["-49.5, 16.125", "-21, 16.125"],
-    ["21, 22.125", "49.5, 22.125"],
-    ["-14.25, 42.75", "14.25, 42.75"],
-  ];
+
+  // Multiplication factor from game platform height to viewer platform height.
+  const platformHeightCoefficient = 0.80625;
+
+  const platforms = createMemo(() => {
+    const gameHeightL =
+      access("currentFrame").stage.fodLeftPlatformHeight ?? fodInitialLeftPlatformHeight;
+    const gameHeightR =
+      access("currentFrame").stage.fodRightPlatformHeight ?? fodInitialRightPlatformHeight;
+    const heightL = gameHeightL * platformHeightCoefficient;
+    const heightR = gameHeightR * platformHeightCoefficient;
+    return [
+      [`-49.5, ${heightL}`, `-21, ${heightL}`],
+      [`21, ${heightR}`, `49.5, ${heightR}`],
+      ["-14.25, 42.75", "14.25, 42.75"],
+    ];
+  });
+
   const blastzones = [
     [-198.75, -146.25],
     [198.75, 202.5],
@@ -359,7 +376,7 @@ function FountainOfDreams() {
     <>
       <Grid blastzones={blastzones} />
       <polyline points={mainStage.join(" ")} class="fill-slate-800" />
-      <For each={platforms.slice(0, 2)}>
+      <For each={platforms().slice(0, 2)}>
         {(points) => (
           <polyline
             points={points.join(" ")}
@@ -369,7 +386,7 @@ function FountainOfDreams() {
         )}
       </For>
       <polyline
-        points={platforms[platforms.length - 1].join(" ")}
+        points={platforms()[platforms().length - 1].join(" ")}
         class="stroke-slate-800"
       />
       <rect
