@@ -2,7 +2,7 @@
   "name": "@gcpreston/slippi-viewer",
   "description": "View Slippi replays and streams in the browser",
   "keywords": ["slippi", "project-slippi", "slp", "melee", "ssbm"],
-  "version": "0.1.3",
+  "version": "0.1.4",
   "author": "Graham Preston",
   "license": "MIT",
   "main": "dist/index.js",
