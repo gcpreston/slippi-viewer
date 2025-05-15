@@ -43,7 +43,7 @@ export const defaultSpectateStoreState: SpectateStore = {
   framesPerTick: 1,
   running: false,
   zoom: 1,
-  isDebug: false,
+  isDebug: true,
   isFullscreen: false
 };
 
@@ -120,13 +120,13 @@ export function jumpPercent(percent: number): void {
 }
 
 export function jumpToLive(): void {
-  setReplayState("frame", nonReactiveState.gameFrames.length - 2);
+  setReplayState("frame", Math.max(nonReactiveState.gameFrames.length - 2, 0));
 }
 
 export function adjust(delta: number): void {
   // TODO: Computed frame count signal
   setReplayState("frame", (f) =>
-    Math.min(f + delta, nonReactiveState.gameFrames.length - 2));
+    Math.min(f + delta, Math.max(nonReactiveState.gameFrames.length - 2, 0)));
 }
 
 // TODO: Figure out how to put this in createRoot
