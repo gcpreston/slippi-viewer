@@ -57,7 +57,11 @@ const defaultNonReactiveState: NonReactiveState = {
   payloadSizes: undefined,
   replayFormatVersion: "0.1.0.0", // TODO: import from liveparser (circular dependency)
   gameFrames: [],
-  latestFinalizedFrame: undefined
+  latestFinalizedFrame: undefined,
+  stageStateOnLoad: {
+    fodLeftPlatformHeight: undefined,
+    fodRightPlatformHeight: undefined,
+  }
 }
 
 export let nonReactiveState = structuredClone(defaultNonReactiveState);
@@ -194,15 +198,16 @@ function handleGameStartEvent(settings: GameStartEvent) {
 function initFrameIfNeeded(frames: Frame[], frameNumber: number): Frame {
   if (frames[frameNumber] === undefined) {
     const prevFrame = frames[frameNumber - 1];
+    let prevStageState;
 
-    let prevFodLeftPlatformHeight: number, prevFodRightPlatformHeight: number;
-    if (prevFrame) {
-      prevFodLeftPlatformHeight = prevFrame.stage.fodLeftPlatformHeight;
-      prevFodRightPlatformHeight = prevFrame.stage.fodRightPlatformHeight;
+    if (prevFrame === undefined) {
+      prevStageState = nonReactiveState.stageStateOnLoad;
     } else {
-      prevFodLeftPlatformHeight = fodInitialLeftPlatformHeight;
-      prevFodRightPlatformHeight = fodInitialRightPlatformHeight;
+      prevStageState = prevFrame.stage;
     }
+
+    const prevFodLeftPlatformHeight = prevStageState.fodLeftPlatformHeight ?? fodInitialLeftPlatformHeight;
+    const prevFodRightPlatformHeight = prevStageState.fodRightPlatformHeight ?? fodInitialRightPlatformHeight;
 
     // @ts-expect-error: randomSeed will be populated later if found.
     return {
@@ -313,14 +318,23 @@ function handleFrameBookendEvent(frameBookend: FrameBookendEvent): void {
 }
 
 function handleFodPlatformsEvent(fodPlatforms: FodPlatformsEvent): void {
+  // Since we don't receive all frames for mid-game join, remember the value
+  // to set it once we have a first frame.
+  const frame = nonReactiveState.gameFrames[fodPlatforms.frameNumber];
+  let stage;
+
+  if (frame === undefined) {
+    stage = nonReactiveState.stageStateOnLoad;
+  } else {
+    stage = frame.stage;
+  }
+
   if (fodPlatforms.platform === 1) {
     // @ts-ignore will only be readonly once frame is finalized
-    nonReactiveState.gameFrames[fodPlatforms.frameNumber].stage.fodLeftPlatformHeight =
-      fodPlatforms.height;
+    stage.fodLeftPlatformHeight = fodPlatforms.height;
   } else {
     // @ts-ignore will only be readonly once frame is finalized
-    nonReactiveState.gameFrames[fodPlatforms.frameNumber].stage.fodRightPlatformHeight =
-      fodPlatforms.height;
+    stage.fodRightPlatformHeight = fodPlatforms.height;
   }
 }
 

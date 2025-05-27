@@ -56,6 +56,7 @@ export type NonReactiveState = {
    */
   gameFrames: Frame[];
   latestFinalizedFrame?: number;
+  stageStateOnLoad: StageStateOnLoad;
 };
 
 /**
@@ -318,6 +319,11 @@ export interface StageState {
   readonly frameNumber: number;
   readonly fodLeftPlatformHeight: number;
   readonly fodRightPlatformHeight: number;
+}
+
+export interface StageStateOnLoad {
+  fodLeftPlatformHeight?: number;
+  fodRightPlatformHeight?: number;
 }
 
 export interface FrameBookend {
