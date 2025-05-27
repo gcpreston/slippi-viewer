@@ -1,3 +1,4 @@
+import ReconnectingWebSocket from "reconnecting-websocket";
 import { CommandPayloadSizes } from "~/common/types";
 import { parsePacket } from "./liveParser";
 
@@ -38,7 +39,7 @@ onmessage = (event: MessageEvent<WorkerInput>) => {
 
 function connectWS(wsUrl: string) {
   console.log("Connecting to stream:", wsUrl);
-  const ws = new WebSocket(wsUrl);
+  const ws = new ReconnectingWebSocket(wsUrl);
   ws.binaryType = "arraybuffer";
   console.log("Connection successful.");
 

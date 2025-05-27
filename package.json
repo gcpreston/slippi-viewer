@@ -1,8 +1,14 @@
 {
   "name": "@gcpreston/slippi-viewer",
   "description": "View Slippi replays and streams in the browser",
-  "keywords": ["slippi", "project-slippi", "slp", "melee", "ssbm"],
-  "version": "0.1.9",
+  "keywords": [
+    "slippi",
+    "project-slippi",
+    "slp",
+    "melee",
+    "ssbm"
+  ],
+  "version": "0.1.10",
   "author": "Graham Preston",
   "license": "MIT",
   "main": "dist/index.js",
@@ -19,6 +25,7 @@
     "@shelacek/ubjson": "^1.1.1",
     "@solid-primitives/raf": "^2.1.4",
     "fflate": "^0.7.4",
+    "reconnecting-websocket": "^4.4.0",
     "solid-element": "^1.9.1",
     "solid-js": "^1.6.3"
   },
