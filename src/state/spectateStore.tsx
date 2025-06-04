@@ -180,18 +180,16 @@ export function setReplayStateFromGameEvent(gameEvent: GameEvent): void {
 }
 
 function handleEventPayloadsEvent() {
-  if (replayState.playbackData?.ending) {
-    // New game, unset spectate data.
-    // It will get reset on game start, when settings are available.
-    setReplayState({ playbackData: undefined, frame: 0, renderDatas: [] });
-  }
-  // Otherwise, the bridge reconnected and re-sent current game's data.
-  // No need to modify state (stay on the same frame as before and keep playing).
+  // Either new game started, or reconnected and re-received game data.
+  // Either way, restart spectate as if new game, because some frames would be
+  // missing re-spectating from live.
+  setReplayState({ playbackData: undefined, frame: 0, renderDatas: [] });
+  nonReactiveState.latestFinalizedFrame = undefined;
+  nonReactiveState.gameFrames = [];
 }
 
 function handleGameStartEvent(settings: GameStartEvent) {
   setReplayState("playbackData", { settings });
-  nonReactiveState.gameFrames = [];
   start();
 }
 
@@ -413,9 +411,11 @@ createRoot(() => {
     if (replayState.playbackData === undefined) {
       return;
     }
+    const frame = nonReactiveState.gameFrames[replayState.frame];
+
     setReplayState(
       "renderDatas",
-      nonReactiveState.gameFrames.length <= replayState.frame ? [] : nonReactiveState.gameFrames[replayState.frame].players
+      frame === undefined ? [] : frame.players
         .filter((playerUpdate) => playerUpdate)
         .flatMap((playerUpdate) => {
           const animations = replayState.animations[playerUpdate.playerIndex];
