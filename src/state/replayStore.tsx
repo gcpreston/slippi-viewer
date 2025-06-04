@@ -1,5 +1,5 @@
 import createRAF, { targetFPS } from "@solid-primitives/raf";
-import { batch, createEffect, createResource } from "solid-js";
+import { batch, createEffect, createResource, ResourceReturn } from "solid-js";
 import { createStore } from "solid-js/store";
 import {
   actionNameById,
@@ -43,6 +43,7 @@ export interface RenderData {
 export interface ReplayStore {
   replayData?: ReplayData;
   animations: (CharacterAnimations | undefined)[];
+  isLoading: boolean,
   frame: number;
   renderDatas: RenderData[];
   fps: number;
@@ -56,6 +57,7 @@ export const defaultReplayStoreState: ReplayStore = {
   frame: 0,
   renderDatas: [],
   animations: Array(4).fill(undefined),
+  isLoading: false,
   fps: 60,
   framesPerTick: 1,
   running: false,
@@ -148,7 +150,7 @@ export async function setReplay(replayFile: File): Promise<void> {
   start();
 }
 
-const animationResources = [];
+const animationResources: ResourceReturn<CharacterAnimations | undefined, unknown>[] = [];
 for (let playerIndex = 0; playerIndex < 4; playerIndex++) {
   animationResources.push(
     createResource(
@@ -197,6 +199,11 @@ animationResources.forEach(([dataSignal], playerIndex) =>
     })
   )
 );
+
+createEffect(() => {
+  const dataSignals = animationResources.map(([dataSignal]) => dataSignal);
+  setReplayState("isLoading", dataSignals.some(a => a.loading));
+})
 
 createEffect(() => {
   if (replayState.replayData === undefined) {

@@ -24,18 +24,20 @@ export function Viewer() {
         when={access("settings") && access("frames").length > access("frame")} // this is really spectate-only behavior
         fallback={<div class="flex justify-center italic">Waiting for game...</div>}
       >
-        <svg class="rounded-t border bg-slate-50" viewBox="-365 -300 730 600">
-          {/* up = positive y axis */}
-          <g class="-scale-y-100">
-            <Camera>
-              <Stage />
-              <Players />
-              <For each={items()}>{(item) => <Item item={item} />}</For>
-            </Camera>
-            <HUD />
-          </g>
-        </svg>
-        {replayPointer()?.mode === "spectate" ? <SpectateControls /> : <Controls />}
+        <Show when={!access("isLoading")} fallback={<div class="flex justify-center italic">Loading...</div>}>
+          <svg class="rounded-t border bg-slate-50" viewBox="-365 -300 730 600">
+            {/* up = positive y axis */}
+            <g class="-scale-y-100">
+              <Camera>
+                <Stage />
+                <Players />
+                <For each={items()}>{(item) => <Item item={item} />}</For>
+              </Camera>
+              <HUD />
+            </g>
+          </svg>
+          {replayPointer()?.mode === "spectate" ? <SpectateControls /> : <Controls />}
+        </Show>
       </Show>
     </div>
   );

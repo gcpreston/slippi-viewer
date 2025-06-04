@@ -30,6 +30,7 @@ export interface ReplayData {
 export type SpectateStore = {
   playbackData?: SpectateData;
   animations: (CharacterAnimations | undefined)[];
+  isLoading: boolean;
   frame: number;
   gameEndFrame: number | null;
   renderDatas: RenderData[];

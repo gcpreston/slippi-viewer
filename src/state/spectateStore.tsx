@@ -1,5 +1,5 @@
 import createRAF, { targetFPS } from "@solid-primitives/raf";
-import { batch, createEffect, createResource, createRoot, createSignal } from "solid-js";
+import { batch, createEffect, createResource, createRoot, createSignal, ResourceReturn } from "solid-js";
 import { createStore } from "solid-js/store";
 import {
   actionNameById,
@@ -39,6 +39,7 @@ export const defaultSpectateStoreState: SpectateStore = {
   gameEndFrame: null,
   renderDatas: [],
   animations: Array(4).fill(undefined),
+  isLoading: false,
   fps: 60,
   framesPerTick: 1,
   running: false,
@@ -362,7 +363,7 @@ export function setWsUrl(url: string | null) {
 }
 
 createRoot(() => {
-  const animationResources = [];
+  const animationResources: ResourceReturn<CharacterAnimations | undefined, unknown>[] = [];
   for (let playerIndex = 0; playerIndex < 4; playerIndex++) {
     animationResources.push(
       createResource(
@@ -418,6 +419,11 @@ createRoot(() => {
       });
     })
   );
+
+  createEffect(() => {
+    const dataSignals = animationResources.map(([dataSignal]) => dataSignal);
+    setReplayState("isLoading", dataSignals.some(a => a.loading));
+  })
 
   createEffect(() => {
     if (replayState.playbackData === undefined) {
