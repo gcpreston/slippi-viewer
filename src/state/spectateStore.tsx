@@ -47,6 +47,8 @@ export const defaultSpectateStoreState: SpectateStore = {
   isFullscreen: false
 };
 
+const BUFFER_FRAME_COUNT = 2;
+
 const [replayState, setReplayState] = createStore<SpectateStore>(
   structuredClone(defaultSpectateStoreState)
 );
@@ -57,15 +59,19 @@ const defaultNonReactiveState: NonReactiveState = {
   payloadSizes: undefined,
   replayFormatVersion: "0.1.0.0", // TODO: import from liveparser (circular dependency)
   gameFrames: [],
+  firstKnownFrame: undefined,
   latestFinalizedFrame: undefined,
   stageStateOnLoad: {
     fodLeftPlatformHeight: undefined,
     fodRightPlatformHeight: undefined,
   }
-}
+};
 
 export let nonReactiveState = structuredClone(defaultNonReactiveState);
 let worker: Worker | undefined;
+
+// Desired rewind behavior
+// - Rewinding past first frame received goes to first known frame instead
 
 // TODO: Add to createRoot
 export const [zipsBaseUrl, setZipsBaseUrl] = createSignal<string>("/");
@@ -112,25 +118,28 @@ export function pause(): void {
 }
 
 export function jump(target: number): void {
-  setReplayState("frame", wrapFrame(replayState, target));
+  if (nonReactiveState.firstKnownFrame === undefined) return;
+
+  setReplayState("frame", withinKnownFrames(wrapFrame(replayState, target)));
 }
 
 // percent is [0,1]
 export function jumpPercent(percent: number): void {
+  if (nonReactiveState.firstKnownFrame === undefined) return;
+
+  const frameCount = nonReactiveState.gameFrames.length - nonReactiveState.firstKnownFrame
   setReplayState(
     "frame",
-    Math.round((nonReactiveState.gameFrames.length ?? 0) * percent)
+    withinKnownFrames(Math.round(frameCount * percent) + nonReactiveState.firstKnownFrame) // should be within bounds anyways
   );
 }
 
 export function jumpToLive(): void {
-  setReplayState("frame", Math.max(nonReactiveState.gameFrames.length - 2, 0));
+  setReplayState("frame", withinKnownFrames(nonReactiveState.gameFrames.length));
 }
 
 export function adjust(delta: number): void {
-  // TODO: Computed frame count signal
-  setReplayState("frame", (f) =>
-    Math.min(f + delta, Math.max(nonReactiveState.gameFrames.length - 2, 0)));
+  setReplayState("frame", (f) => withinKnownFrames(f + delta));
 }
 
 // TODO: Figure out how to put this in createRoot
@@ -246,6 +255,9 @@ function handlePreFrameUpdateEvent(playerInputs: PreFrameUpdateEvent): void {
     frame,
     playerInputs.playerIndex
   );
+  if (nonReactiveState.firstKnownFrame === undefined) {
+    nonReactiveState.firstKnownFrame = frame.frameNumber;
+  }
   if (playerInputs.isNana) {
     const players = frame.players.slice();
     const player: PlayerUpdate = { ...frame.players[playerInputs.playerIndex], nanaInputs: playerInputs };
@@ -603,4 +615,16 @@ function wrapFrame(replayState: SpectateStore, frame: number): number {
     (frame + nonReactiveState.gameFrames.length) %
     nonReactiveState.gameFrames.length
   );
+}
+
+/**
+ * Given a frame number, if it is out the known frame bounds, return a frame
+ * number on the closest bound instead. Takes the frame buffer into account.
+ */
+function withinKnownFrames(frame: number): number {
+  if (nonReactiveState.firstKnownFrame === undefined) return 0;
+
+  const firstKnownFrame = nonReactiveState.firstKnownFrame;
+  const lastKnownFrame = Math.max(nonReactiveState.gameFrames.length - BUFFER_FRAME_COUNT, 0);
+  return Math.min(Math.max(frame, firstKnownFrame), lastKnownFrame);
 }

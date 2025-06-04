@@ -55,6 +55,7 @@ export type NonReactiveState = {
    * Player control starts at 84. Timer starts at 123.
    */
   gameFrames: Frame[];
+  firstKnownFrame?: number,
   latestFinalizedFrame?: number;
   stageStateOnLoad: StageStateOnLoad;
 };
