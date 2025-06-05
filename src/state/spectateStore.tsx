@@ -45,10 +45,12 @@ export const defaultSpectateStoreState: SpectateStore = {
   running: false,
   zoom: 1,
   isDebug: false,
-  isFullscreen: false
+  isFullscreen: false,
+  isLive: true
 };
 
 const BUFFER_FRAME_COUNT = 2;
+const LIVE_WINDOW_SIZE = 10;
 
 const [replayState, setReplayState] = createStore<SpectateStore>(
   structuredClone(defaultSpectateStoreState)
@@ -70,9 +72,6 @@ const defaultNonReactiveState: NonReactiveState = {
 
 export let nonReactiveState = structuredClone(defaultNonReactiveState);
 let worker: Worker | undefined;
-
-// Desired rewind behavior
-// - Rewinding past first frame received goes to first known frame instead
 
 // TODO: Add to createRoot
 export const [zipsBaseUrl, setZipsBaseUrl] = createSignal<string>("/");
@@ -450,6 +449,16 @@ createRoot(() => {
           return renderDatas;
         })
     );
+  });
+
+  createEffect(() => {
+    if (replayState.running) {
+      const latestFrameWithData = nonReactiveState.gameFrames.length;
+      const isLive = latestFrameWithData - replayState.frame <= LIVE_WINDOW_SIZE;
+      setReplayState("isLive", isLive);
+    } else {
+      setReplayState("isLive", false);
+    }
   });
 });
 
