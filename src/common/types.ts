@@ -40,6 +40,7 @@ export type SpectateStore = {
   zoom: number;
   isDebug: boolean;
   isFullscreen: boolean;
+  isLive: boolean;
 };
 
 export type SpectateData = {
