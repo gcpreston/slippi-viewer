@@ -46,7 +46,7 @@ export const defaultSpectateStoreState: SpectateStore = {
   zoom: 1,
   isDebug: false,
   isFullscreen: false,
-  isLive: true
+  isLive: false
 };
 
 const BUFFER_FRAME_COUNT = 2;
@@ -452,7 +452,7 @@ createRoot(() => {
   });
 
   createEffect(() => {
-    if (replayState.running) {
+    if (replayState.running && replayState.frame > 0) {
       const latestFrameWithData = nonReactiveState.gameFrames.length;
       const isLive = latestFrameWithData - replayState.frame <= LIVE_WINDOW_SIZE;
       setReplayState("isLive", isLive);

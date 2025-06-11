@@ -17,7 +17,6 @@ export function HUD() {
       <For each={playerIndexes()}>
         {(playerIndex) => <PlayerHUD player={playerIndex} />}
       </For>
-      {access("isLive") && <LiveIcon title="Live" x="-68%" y="42%" />}
     </>
   );
 }

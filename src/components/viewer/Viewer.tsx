@@ -6,6 +6,7 @@ import { Stage } from "~/components/viewer/Stage";
 import { Item } from "~/components/viewer/Item";
 import { SpectateControls } from "~/components/viewer/SpectateControls";
 import { Controls } from "~/components/viewer/Controls";
+import { LiveIcon } from "~/components/common/icons";
 import { nonReactiveState, spectateStore } from "~/state/spectateStore";
 import { access, replayPointer } from "~/state/accessor";
 
@@ -18,8 +19,11 @@ export function Viewer() {
     console.log('nonReactiveState', nonReactiveState);
   };
   return (
-    <div class="flex flex-col overflow-y-auto">
+    <div class="flex flex-col overflow-y-auto relative">
       {spectateStore.isDebug && <button onClick={showState}>Debug</button>}
+      <Show when={access("isLive")}>
+        <LiveIcon title="Live" class="relative top-10 left-2" />
+      </Show>
       <Show
         when={access("settings") && access("frames").length > access("frame")} // this is really spectate-only behavior
         fallback={<div class="flex justify-center italic">Waiting for game...</div>}

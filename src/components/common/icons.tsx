@@ -362,20 +362,20 @@ export function LiveIcon(props: IconProps) {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
-      width="70"
-      height="28"
-      viewBox="0 0 70 28"
+      width="63"
+      height="21"
+      viewBox="0 0 63 21"
       {...props}
     >
       <title>{props.title}</title>
-      <rect x="0" y="0" width="70" height="28" rx="5" fill="#E53935"/>
+      <rect x="0" y="0" width="63" height="21" rx="5" fill="#E53935"/>
       <text
-        x="36"
-        y="-8"
+        x="32"
+        y="17"
         text-anchor="middle"
         fill="#fff"
         letter-spacing="3"
-        style={{ font: "bold 18px sans-serif", transform: "scaleY(-1)" }}
+        style={{ font: "bold 16px sans-serif" }}
       >LIVE</text>
     </svg>
   );
