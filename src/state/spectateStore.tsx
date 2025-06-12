@@ -50,6 +50,7 @@ export const defaultSpectateStoreState: SpectateStore = {
 };
 
 const BUFFER_FRAME_COUNT = 2;
+const LIVE_FRAME_TOLERANCE = 6;
 
 const [replayState, setReplayState] = createStore<SpectateStore>(
   structuredClone(defaultSpectateStoreState)
@@ -151,9 +152,14 @@ const [running, start, stop] = createRAF(
   targetFPS(
     () => {
       const tryFrame = replayState.frame + replayState.framesPerTick;
-      if (tryFrame < (nonReactiveState.latestFinalizedFrame ?? 0)) {
-        setReplayState("frame", tryFrame);
+      const latestFinalizedFrame = nonReactiveState.latestFinalizedFrame ?? 0;
+
+      if (tryFrame >= latestFinalizedFrame) {
+        return;
       }
+
+      const nextFrame = (replayState.watchingLive && tryFrame < latestFinalizedFrame - LIVE_FRAME_TOLERANCE) ? latestFinalizedFrame : tryFrame;
+      setReplayState("frame", nextFrame);
     },
     () => replayState.fps
   )

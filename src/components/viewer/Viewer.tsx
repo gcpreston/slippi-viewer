@@ -19,31 +19,39 @@ export function Viewer() {
     console.log('nonReactiveState', nonReactiveState);
   };
   return (
-    <div class="flex flex-col overflow-y-auto relative">
-      {spectateStore.isDebug && <button onClick={showState}>Debug</button>}
-
-      <Show
-        when={access("settings") && access("frames").length > access("frame")} // this is really spectate-only behavior
-        fallback={<div class="flex justify-center italic">Waiting for game...</div>}
-      >
-        <Show when={access("watchingLive")}>
-          <LiveIcon title="Live" class="absolute top-4 left-4 w-12" />
-        </Show>
-        <Show when={!access("isLoading")} fallback={<div class="flex justify-center italic">Loading...</div>}>
-          <svg class="rounded-t border bg-slate-50" viewBox="-365 -300 730 600">
-            {/* up = positive y axis */}
-            <g class="-scale-y-100">
-              <Camera>
-                <Stage />
-                <Players />
-                <For each={items()}>{(item) => <Item item={item} />}</For>
-              </Camera>
-              <HUD />
-            </g>
-          </svg>
-          {replayPointer()?.mode === "spectate" ? <SpectateControls /> : <Controls />}
-        </Show>
+    <>
+      <Show when={access("isDebug")}>
+        <button onClick={showState}>Debug</button>
+        <div>
+          <div>watchingLive: {String(access("watchingLive"))}</div>
+          <div>Number of frames behind: {access("frames").length - access("frame")}</div>
+        </div>
       </Show>
-    </div>
+
+      <div class="flex flex-col overflow-y-auto relative">
+        <Show
+          when={access("settings") && access("frames").length > access("frame")} // this is really spectate-only behavior
+          fallback={<div class="flex justify-center italic">Waiting for game...</div>}
+        >
+          <Show when={access("watchingLive")}>
+            <LiveIcon title="Live" class="absolute top-4 left-4 w-12" />
+          </Show>
+          <Show when={!access("isLoading")} fallback={<div class="flex justify-center italic">Loading...</div>}>
+            <svg class="rounded-t border bg-slate-50" viewBox="-365 -300 730 600">
+              {/* up = positive y axis */}
+              <g class="-scale-y-100">
+                <Camera>
+                  <Stage />
+                  <Players />
+                  <For each={items()}>{(item) => <Item item={item} />}</For>
+                </Camera>
+                <HUD />
+              </g>
+            </svg>
+            {replayPointer()?.mode === "spectate" ? <SpectateControls /> : <Controls />}
+          </Show>
+        </Show>
+      </div>
+    </>
   );
 }
