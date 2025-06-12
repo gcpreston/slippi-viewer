@@ -13,7 +13,7 @@ type ReplayPointer = {
 };
 
 type ViewerMode = "replay" | "spectate";
-type ViewerStateAttribute = "settings" | "ending" | "frames" | "replayFormatVersion" | "animations" | "isLoading" | "frame" | "renderDatas" | "framesPerTick" | "running" | "zoom" | "isDebug" | "isFullscreen" | "isLive" | "currentFrame";
+type ViewerStateAttribute = "settings" | "ending" | "frames" | "replayFormatVersion" | "animations" | "isLoading" | "frame" | "renderDatas" | "framesPerTick" | "running" | "zoom" | "isDebug" | "isFullscreen" | "watchingLive" | "currentFrame";
 
 type API = {
   replayPointer(): ReplayPointer | null,
@@ -107,9 +107,9 @@ export function access(attribute: ViewerStateAttribute): any {
       "replay": () => replayStore.isFullscreen,
       "spectate": () => spectateStore.isFullscreen
     },
-    "isLive": {
+    "watchingLive": {
       "replay": () => false,
-      "spectate": () => spectateStore.isLive
+      "spectate": () => spectateStore.watchingLive
     }
   };
 

@@ -46,11 +46,10 @@ export const defaultSpectateStoreState: SpectateStore = {
   zoom: 1,
   isDebug: false,
   isFullscreen: false,
-  isLive: false
+  watchingLive: true
 };
 
 const BUFFER_FRAME_COUNT = 2;
-const LIVE_WINDOW_SIZE = 10;
 
 const [replayState, setReplayState] = createStore<SpectateStore>(
   structuredClone(defaultSpectateStoreState)
@@ -114,12 +113,14 @@ export function togglePause(): void {
 }
 
 export function pause(): void {
+  setReplayState("watchingLive", false);
   stop();
 }
 
 export function jump(target: number): void {
   if (nonReactiveState.firstKnownFrame === undefined) return;
 
+  setReplayState("watchingLive", false);
   setReplayState("frame", withinKnownFrames(wrapFrame(replayState, target)));
 }
 
@@ -127,7 +128,8 @@ export function jump(target: number): void {
 export function jumpPercent(percent: number): void {
   if (nonReactiveState.firstKnownFrame === undefined) return;
 
-  const frameCount = nonReactiveState.gameFrames.length - nonReactiveState.firstKnownFrame
+  const frameCount = nonReactiveState.gameFrames.length - nonReactiveState.firstKnownFrame;
+  setReplayState("watchingLive", false);
   setReplayState(
     "frame",
     withinKnownFrames(Math.round(frameCount * percent) + nonReactiveState.firstKnownFrame) // should be within bounds anyways
@@ -135,10 +137,12 @@ export function jumpPercent(percent: number): void {
 }
 
 export function jumpToLive(): void {
+  setReplayState("watchingLive", true);
   setReplayState("frame", withinKnownFrames(nonReactiveState.gameFrames.length));
 }
 
 export function adjust(delta: number): void {
+  setReplayState("watchingLive", false);
   setReplayState("frame", (f) => withinKnownFrames(f + delta));
 }
 
@@ -449,16 +453,6 @@ createRoot(() => {
           return renderDatas;
         })
     );
-  });
-
-  createEffect(() => {
-    if (replayState.running && replayState.frame > 0) {
-      const latestFrameWithData = nonReactiveState.gameFrames.length;
-      const isLive = latestFrameWithData - replayState.frame <= LIVE_WINDOW_SIZE;
-      setReplayState("isLive", isLive);
-    } else {
-      setReplayState("isLive", false);
-    }
   });
 });
 
