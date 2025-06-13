@@ -6,7 +6,7 @@ import { Stage } from "~/components/viewer/Stage";
 import { Item } from "~/components/viewer/Item";
 import { SpectateControls } from "~/components/viewer/SpectateControls";
 import { Controls } from "~/components/viewer/Controls";
-import { LiveIcon } from "~/components/common/icons";
+import { LiveIcon, ReconnectingText } from "~/components/common/icons";
 import { nonReactiveState, spectateStore } from "~/state/spectateStore";
 import { access, replayPointer } from "~/state/accessor";
 
@@ -31,11 +31,19 @@ export function Viewer() {
       <div class="flex flex-col overflow-y-auto relative">
         <Show
           when={access("settings") && access("frames").length > access("frame")} // this is really spectate-only behavior
-          fallback={<div class="flex justify-center italic">Waiting for game...</div>}
+          fallback={<div class="flex justify-center italic">{access("disconnected") ? "Reconnecting..." : "Waiting for game..."}</div>}
         >
-          <Show when={access("watchingLive")}>
-            <LiveIcon title="Live" class="absolute top-4 left-4 w-12" />
+          <Show
+            when={access("disconnected")}
+            fallback={
+              <Show when={access("watchingLive")}>
+                <LiveIcon title="Live" class="absolute top-4 left-4 w-12" />
+              </Show>
+            }
+          >
+            <ReconnectingText title="Reconnecting" class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 fill-red-500 stroke-red-600" />
           </Show>
+
           <Show when={!access("isLoading")} fallback={<div class="flex justify-center italic">Loading...</div>}>
             <svg class="rounded-t border bg-slate-50" viewBox="-365 -300 730 600">
               {/* up = positive y axis */}
