@@ -41,6 +41,7 @@ export type SpectateStore = {
   isDebug: boolean;
   isFullscreen: boolean;
   watchingLive: boolean;
+  disconnected: boolean;
 };
 
 export type SpectateData = {

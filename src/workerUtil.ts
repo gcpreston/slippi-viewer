@@ -1,8 +1,19 @@
 import { batch } from "solid-js";
 import { GameEvent } from "~/common/types";
-import { setReplayStateFromGameEvent } from "~/state/spectateStore";
+import { setDisconnected, setReplayStateFromGameEvent } from "~/state/spectateStore";
 
 import workerCode from "~/worker/worker";
+
+type WorkerMessageData = {
+  type: "game_data",
+  value: GameEvent[]
+} | {
+  type: "connected",
+  value: null
+} | {
+  type: "disconnected",
+  value: "close" | "error"
+};
 
 function handleGameData(gameEvents: GameEvent[]) {
   // Works without batch now, but might still want it for smoothness.
@@ -21,8 +32,18 @@ export function createWorker(wsUrl: string): Worker {
   URL.revokeObjectURL(workerUrl);
 
   worker.onmessage = (event: MessageEvent) => {
-    // for now, only type is "game_data"
-    handleGameData(event.data.value);
+    const data: WorkerMessageData = event.data;
+    switch (data.type) {
+      case "game_data":
+        handleGameData(data.value);
+        break;
+      case "connected":
+        setDisconnected(false);
+        break;
+      case "disconnected":
+        setDisconnected(true);
+        break;
+    }
   };
 
   worker.onerror = (error) => {
