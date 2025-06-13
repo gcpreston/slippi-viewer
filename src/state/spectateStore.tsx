@@ -46,7 +46,8 @@ export const defaultSpectateStoreState: SpectateStore = {
   zoom: 1,
   isDebug: false,
   isFullscreen: false,
-  watchingLive: true
+  watchingLive: true,
+  disconnected: false
 };
 
 const BUFFER_FRAME_COUNT = 2;
@@ -165,6 +166,10 @@ const [running, start, stop] = createRAF(
   )
 );
 createEffect(() => setReplayState("running", running()));
+
+export function setDisconnected(disconnected: boolean): void {
+  setReplayState("disconnected", disconnected);
+}
 
 export function setReplayStateFromGameEvent(gameEvent: GameEvent): void {
   switch (gameEvent.type) {

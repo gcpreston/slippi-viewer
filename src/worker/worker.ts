@@ -47,13 +47,20 @@ function connectWS(wsUrl: string) {
     handleGameData(msg.data);
   };
 
-  ws.onerror = (err) => {
-    console.error("WebSocket error:", err);
+  ws.onopen = () => {
+    postMessage({ type: "connected", value: null });
+    console.log("WebSocket opened");
   }
 
+  ws.onerror = (err) => {
+    postMessage({ type: "disconnected", value: "error" });
+    console.error("WebSocket error:", err);
+  };
+
   ws.onclose = (msg) => {
+    postMessage({ type: "disconnected", value: "closed" });
     console.log("WebSocket closed:", msg);
-  }
+  };
 }
 
 function handleGameData(payload: ArrayBuffer) {

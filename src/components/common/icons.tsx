@@ -381,6 +381,31 @@ export function LiveIcon(props: IconProps) {
   );
 }
 
+export function ReconnectingText(props: IconProps) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="180"
+      height="40"
+      viewBox="0 0 180 40"
+      {...props}
+    >
+      <title>{props.title}</title>
+      <text
+        x="50%"
+        y="50%"
+        dominant-baseline="middle"
+        text-anchor="middle"
+        font-family="sans-serif"
+        font-size="24"
+        font-weight="bold"
+      >
+        Reconnecting...
+      </text>
+    </svg>
+  )
+}
+
 // Comfortaa from Google Fonts
 export function SlippiLab(props: IconProps) {
   return (
