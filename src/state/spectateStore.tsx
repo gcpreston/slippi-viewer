@@ -51,7 +51,7 @@ export const defaultSpectateStoreState: SpectateStore = {
 };
 
 const BUFFER_FRAME_COUNT = 2;
-const LIVE_FRAME_TOLERANCE = 6;
+const LIVE_FRAME_TOLERANCE = 20;
 
 const [replayState, setReplayState] = createStore<SpectateStore>(
   structuredClone(defaultSpectateStoreState)
