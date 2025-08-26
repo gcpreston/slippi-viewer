@@ -24,7 +24,7 @@ export { setReplayPointerWrapper } from "~/state/accessor";
  *   * viewer.setReplay(replayData: ArrayBuffer): void
  *   * viewer.spectate(wsUrl: string): void
  *     - spectator_mode can provide a wrapper component which just takes
- *       bridgeid as an observed attribute if desired
+ *       streamid as an observed attribute if desired
  *   * viewer.clear(): void
  */
 

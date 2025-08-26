@@ -32,7 +32,7 @@ viewer.setReplay(replayFileData);
 
 ```js
 const viewer = document.querySelector("slippi-viewer");
-viewer.spectate("wss://spectatormode.tv/viewer_socket/websocket?bridge_id=<stream ID>");
+viewer.spectate("wss://spectatormode.tv/viewer_socket/websocket?stream_id=<stream ID>");
 ```
 
 The spectate example points to the websocket URL where a stream can be found on SpectatorMode, to give a concrete example.
