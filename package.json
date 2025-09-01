@@ -8,7 +8,7 @@
     "melee",
     "ssbm"
   ],
-  "version": "0.1.15",
+  "version": "0.1.16",
   "author": "Graham Preston",
   "license": "MIT",
   "main": "dist/index.js",
